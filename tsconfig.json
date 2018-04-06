@@ -1,0 +1,28 @@
+{
+  "include": [
+    "./js"
+  ],
+  "compilerOptions": {
+    "rootDir": "./js",
+    "target": "ES2015",
+    "module": "es2015",
+    "lib": [
+      "ES6",
+      "ES5",
+      "DOM",
+      "ScriptHost"
+    ],
+    "jsx": "react",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "typeRoots": [
+      "./typings"
+    ]
+  }
+}

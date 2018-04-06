@@ -1,0 +1,20 @@
+.fa.fa-stack-1_5x {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.5em;
+    line-height: inherit;
+}
+
+.fa.fa-iga {
+    font-size: 1.3em;
+}
+
+.fa.fa-etc {
+    font-size: 1.4em;
+}
+
+.fa.fa-1_5x {
+    font-size: 1.5em;
+}
