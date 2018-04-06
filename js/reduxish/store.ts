@@ -66,7 +66,3 @@ const fullReducer: Reducer<InternalState> = (prevState, action) => {
 };
 
 export const ISTATE = createStore(fullReducer, defaultState, reduxDevtools && reduxDevtools());
-
-addAndSelectTab(new CsvTabProps(
-    CsvData.parse("Match,Team,Scale,Comments\n1,1,0,Foobar comments\n1,2,4,Scale bot\n2,1,2,Did good!")
-));
