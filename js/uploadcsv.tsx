@@ -90,7 +90,7 @@ export class UploadCsv extends React.Component<{}, {
                onMouseLeave={this.onExit.bind(this)}
                onClick={this.onClick.bind(this)}>
             </i>
-            <input type="file" className="d-none" ref={(r: HTMLInputElement) => {
+            <input type="file" accept="text/csv;.csv" className="d-none" ref={(r: HTMLInputElement) => {
                 $(r).on('change', e => {
                     this.onFileChosen(e);
                 });
