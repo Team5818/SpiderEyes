@@ -27,16 +27,10 @@ export class CsvData {
         this.header = header;
         this.values = values;
     }
-}
 
-export type CDTProps = {
-    csvData: CsvData,
-}
-
-export class CsvDataTable extends React.Component<CDTProps, {}> {
-
-    render() {
-        return <AdvancedTable header={this.props.csvData.header} values={this.props.csvData.values}/>;
+    removeRow(row: number): CsvData {
+        const newValues = this.values.slice();
+        newValues.splice(row, 1);
+        return new CsvData(this.header, newValues);
     }
-
 }

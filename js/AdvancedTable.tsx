@@ -1,15 +1,44 @@
-import React, {MouseEvent} from "react";
-import {Col, Row} from 'reactstrap';
-import {compareValue, CsvValue, stringifyValue} from "./values";
+import React from "react";
+import {Col, ColProps, Row} from 'reactstrap';
+import {compareValue, stringifyValue} from "./values";
 import {SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
+import {CsvData} from "./csvData";
+
+type ATCloseButtonProps = {
+    rowDrop: () => any
+};
+
+class ATCloseButton extends React.Component<ATCloseButtonProps, { hover: boolean }> {
+    constructor(props: ATCloseButtonProps) {
+        super(props);
+        this.state = {
+            hover: false
+        };
+    }
+
+    render() {
+        return (
+            <div className={this.state.hover ? 'text-danger' : 'text-light'} onClick={e => {
+                e.preventDefault();
+                if (!confirm('Are you sure you want to delete this row?')) {
+                    return;
+                }
+                this.props.rowDrop();
+            }}
+                 onMouseEnter={() => this.setState(prevState => ({...prevState, hover: true}))}
+                 onMouseLeave={() => this.setState(prevState => ({...prevState, hover: false}))}>
+                <i className="fas fa-times"/>
+            </div>);
+    }
+}
 
 export type AdvancedTableProps = {
-    header: string[],
-    values: CsvValue[][]
+    originalData: CsvData
 }
 
 type AdvancedTableState = {
+    data: CsvData
     sortIndex: number,
     sortDirection: SortDirection
 }
@@ -18,6 +47,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
     constructor(props: AdvancedTableProps) {
         super(props);
         this.state = {
+            data: props.originalData,
             sortIndex: 0,
             sortDirection: SortDirection.ASCENDING
         };
@@ -33,8 +63,17 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         })
     }
 
+    dropRow(row: number) {
+        this.setState(prevState => {
+            return {
+                ...prevState,
+                data: prevState.data.removeRow(row)
+            }
+        });
+    }
+
     render() {
-        const resortedValues = this.props.values.slice();
+        const resortedValues = this.state.data.values.slice();
         const sortIdx = this.state.sortIndex;
         const sortMult = this.state.sortDirection === SortDirection.ASCENDING ? 1 : -1;
         resortedValues.sort((a, b) => {
@@ -42,7 +81,8 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         });
         return <div>
             <Row noGutters>
-                {this.props.header.map((v, i) => this.tableHeader(i, v))}
+                {this.state.data.header.map((v, i) => this.tableHeader(i, v))}
+                {this.tableHeader(undefined, <i className="fas fa-times"/>)}
             </Row>
             {resortedValues.map((valueRow, i) => {
                 return <Row noGutters key={i}>
@@ -51,22 +91,39 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
                             {stringifyValue(v)}
                         </Col>;
                     })}
+                    <Col className="border border-dim p-2">
+                        <div className="m-auto d-inline-block">
+                            <ATCloseButton rowDrop={() => this.dropRow(i)}/>
+                        </div>
+                    </Col>
                 </Row>
             })}
         </div>;
     }
 
-    private tableHeader(i: number, v: string) {
+    private tableHeader(i: number | undefined, v: React.ReactChild) {
         const headerSort = this.state.sortIndex === i
             ? this.state.sortDirection
             : undefined;
-        return <Col key={`${i}-1`} className="border border-dim at-header-plain p-1">
+        const colProps: ColProps = {
+            className: 'border border-dim at-header-plain p-1'
+        };
+        if (typeof i !== "undefined") {
+            colProps.key = `${i}-1`;
+        }
+        const innerElement = (
+            <span className="bungee align-middle" style={{cursor: 'default'}}>
+                {v}
+            </span>
+        );
+        return <Col {...colProps}>
             <div className="d-inline-flex h-100 align-items-center">
-                <SortArrows direction={headerSort} onSort={d => this.resort(i, d)}>
-                    <span className="bungee align-middle" style={{cursor: 'default'}}>
-                        {v}
-                    </span>
-                </SortArrows>
+                {typeof i === "undefined"
+                    ? innerElement
+                    : <SortArrows direction={headerSort} onSort={d => this.resort(i, d)}>
+                        {innerElement}
+                    </SortArrows>
+                }
             </div>
         </Col>;
     }

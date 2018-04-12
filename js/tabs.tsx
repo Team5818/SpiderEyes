@@ -1,20 +1,19 @@
-import {CsvDataTable} from "./csvData";
 import React from "react";
-import {Nav, NavItem, NavLink, TabContent, TabPane, Row, Col} from "reactstrap";
+import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
 import {CsvModController} from "./csvMod";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
-import {Actions, ISTATE} from "./reduxish/store";
+import {AdvancedTable} from "./AdvancedTable";
 
 
 export const CsvTab: React.StatelessComponent<CsvTabProps> = function CsvTab(props) {
     return <div>
         <CsvModController {...props}/>
-        <CsvDataTable csvData={props.data}/>
+        <AdvancedTable originalData={props.data}/>
     </div>;
 };
 
 export const AvgTab: React.StatelessComponent<AvgTabProps> = function AvgTab(props) {
-    return <CsvDataTable csvData={props.data}/>
+    return <AdvancedTable originalData={props.data}/>
 };
 
 export type TabsProps = {
@@ -95,7 +94,7 @@ function tabsHeader(props: TabsProps) {
 
 function tabsContainer(props: TabsProps) {
     function getElement(v: TabProps) {
-        if (v instanceof CsvTabProps) {
+        if (v.type === TabType.CSV) {
             return <CsvTab {...v}/>;
         }
         return <AvgTab {...v}/>;

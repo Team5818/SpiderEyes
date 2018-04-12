@@ -6,11 +6,10 @@ export enum TabType {
 
 export class TabBase {
     id: string;
-    type: TabType;
+    type: TabType | undefined = undefined;
 
-    constructor(id: string, type: TabType) {
-        this.id = id;
-        this.type = type;
+    constructor() {
+        this.id = nextId();
     }
 }
 
@@ -20,18 +19,20 @@ const nextId = Object.assign(function () {
 
 export class CsvTabProps extends TabBase {
     data: CsvData;
+    type = TabType.CSV;
 
     constructor(data: CsvData) {
-        super(nextId(), TabType.CSV);
+        super();
         this.data = data;
     }
 }
 
 export class AvgTabProps extends TabBase {
     data: CsvData;
+    type = TabType.AVG;
 
     constructor(data: CsvData) {
-        super(nextId(), TabType.AVG);
+        super();
         this.data = data;
     }
 }
