@@ -105,7 +105,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         const headerSort = this.state.sortIndex === i
             ? this.state.sortDirection
             : undefined;
-        const colProps: ColProps = {
+        const colProps: Pick<ColProps, 'className' | 'key'> = {
             className: 'border border-dim at-header-plain p-1'
         };
         if (typeof i !== "undefined") {

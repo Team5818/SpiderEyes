@@ -3,9 +3,8 @@ const commonjs = require('rollup-plugin-commonjs');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const babel = require('rollup-plugin-babel');
 const typescript = require('rollup-plugin-typescript2');
-const uglify = require('rollup-plugin-uglify');
+const terser = require('rollup-plugin-terser').terser;
 const replace = require('rollup-plugin-replace');
-const UglifyJS = require('uglify-es');
 const sourceMaps = require('rollup-plugin-sourcemaps');
 const process = require('process');
 
@@ -23,7 +22,11 @@ plugins.push(
         main: true
     }),
     commonjs({
-        include: 'node_modules/**'
+        include: 'node_modules/**',
+        namedExports: {
+            'sprintf-js': ['sprintf'],
+            'react-is': ['isValidElementType']
+        }
     }),
     babel({
         exclude: 'node_modules/**', // only transpile our source code
@@ -33,11 +36,11 @@ plugins.push(
 );
 if (process.env['ENVIRONMENT'] !== 'DEV') {
     plugins.push(
-        uglify({
-            sourceMap: {
-                content: "inline"
-            }
-        }, UglifyJS['minify'])
+        terser({
+            sourcemap: {
+                url: "inline"
+            },
+        })
     );
 }
 const inputOptions = {

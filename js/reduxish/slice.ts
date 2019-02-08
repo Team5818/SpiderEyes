@@ -1,6 +1,6 @@
 import {newAction, OTAction} from "./actionCreators";
 import {AnyAction, Reducer} from "redux";
-import {oKeys} from "../utils";
+import {oKeys, StringKeys} from "../utils";
 
 export type ActionForSliceTransform<STATE, P> = (prevState: STATE, payload: P) => STATE
 
@@ -12,7 +12,7 @@ export interface ActionForSlice<P> {
 }
 
 export interface ActionForSliceFactory<STATE> {
-    newAction<P, S extends keyof STATE>(
+    newAction<P, S extends StringKeys<STATE>>(
         stateSlice: S,
         type: string,
         transform: ActionForSliceTransform<STATE[S], P>
@@ -26,10 +26,10 @@ type TransformCollection<SLICE> = {
 };
 
 class AFSFactoryImpl<STATE extends { [k: string]: any }> implements ActionForSliceFactory<STATE> {
-    sliceTransforms: {[S in keyof STATE]?: TransformCollection<STATE[S]>} = {};
+    sliceTransforms: {[S in StringKeys<STATE>]?: TransformCollection<STATE[S]>} = {};
     typeCheck = new Set<string>();
 
-    newAction<P, S extends keyof STATE>(stateSlice: S, type: string, transform: ActionForSliceTransform<STATE[S], P>) {
+    newAction<P, S extends StringKeys<STATE>>(stateSlice: S, type: string, transform: ActionForSliceTransform<STATE[S], P>) {
         if (this.typeCheck.has(type)) {
             throw new Error(`Already seen type ${type}!`);
         }

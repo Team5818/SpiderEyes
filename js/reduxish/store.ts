@@ -53,7 +53,9 @@ const fullReducer: Reducer<InternalState> = (prevState, action) => {
     if (newState.tabs.length && !newState.tabs.some(tab => tab.id === newState.selectedTab)) {
         // select the closest tab, or 0 if not present / already 0
         let closestIndex = Math.max(0,
-            prevState.tabs.findIndex(tab => tab.id === newState.selectedTab) - 1);
+            typeof prevState === "undefined"
+                ? 0
+                : prevState.tabs.findIndex(tab => tab.id === newState.selectedTab) - 1);
 
         // find the closest index, it is guaranteed that there is at least one tab
         while (typeof newState.tabs[closestIndex] === "undefined" && closestIndex > 0) {

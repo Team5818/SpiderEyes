@@ -1,5 +1,5 @@
 import React from "react";
-import {isDefined} from "./preconditions";
+import {checkNotNull, isDefined} from "./preconditions";
 import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
 import {CsvData} from "./csvData";
 import {CsvTabProps} from "./tabTypes";
@@ -42,7 +42,11 @@ export class UploadCsv extends React.Component<{}, {
         const reader = new FileReader();
         reader.onload = () => {
             ISTATE.dispatch(Actions.removeAllTabs(undefined));
-            addAndSelectTab(new CsvTabProps(CsvData.parse(reader.result)));
+            const data = checkNotNull(reader.result);
+            if (typeof data !== "string") {
+                throw new Error("Should be a String");
+            }
+            addAndSelectTab(new CsvTabProps(CsvData.parse(data)));
         };
         reader.readAsText(csvFile);
     }
@@ -67,7 +71,7 @@ export class UploadCsv extends React.Component<{}, {
         inputs[0].click();
     }
 
-    onFileChosen(e: JQuery.Event<HTMLElement, null>) {
+    onFileChosen(e: JQuery.TriggeredEvent) {
         const target = e.currentTarget;
         if (target === null) {
             return;
