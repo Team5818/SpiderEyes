@@ -4,7 +4,7 @@ import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
 import {AvgTabProps, CsvTabProps} from "./tabTypes";
 import {HeaderSelection} from "./HeaderSelection";
-import {averageRows, CsvValue, genAverageRowArray, interpretValue} from "./values";
+import {averageRows, CsvValue, CsvValueSealed, genAverageRowArray, interpretValue} from "./values";
 import {CsvModal} from "./CsvModal";
 
 
@@ -33,7 +33,7 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
         const keyIndex = this.state.selectedKeyHeaders.indexOf(true);
         const newHeaders = this.props.data.header.filter((v, i) => this.isSelected(i));
 
-        const rowMap: Map<any, CsvValue[][]> = new Map();
+        const rowMap: Map<any, CsvValueSealed[][]> = new Map();
         this.props.data.values.forEach(row => {
             const key = row[keyIndex].value;
             let valueColl = rowMap.get(key);

@@ -1,79 +1,92 @@
 import {sprintf} from "sprintf-js";
+import {cmpIgnoreCase} from "./utils";
 
-export interface CsvValueS {
-    value: string
-    type: 'string'
+export enum CsvValueType {
+    STRING,
+    INTEGER,
+    FLOAT,
+    BOOLEAN,
 }
 
-export interface CsvValueF {
-    value: number
-    type: 'float'
+export interface CsvValue<V, T extends CsvValueType> {
+    value: V
+    type: T
 }
 
-export interface CsvValueI {
-    value: number
-    type: 'integer'
+export interface CsvValueS extends CsvValue<string, CsvValueType.STRING> {
 }
 
-export interface CsvValueB {
-    value: boolean
-    type: 'boolean'
+export interface CsvValueF  extends CsvValue<number, CsvValueType.FLOAT>{
 }
 
-export type CsvValue = CsvValueS | CsvValueF | CsvValueI | CsvValueB
+export interface CsvValueI  extends CsvValue<number, CsvValueType.INTEGER>{
+}
 
-function interpretRaw(v: any): CsvValue | undefined {
+export interface CsvValueB  extends CsvValue<boolean, CsvValueType.BOOLEAN>{
+}
+
+export type CsvValueSealed = CsvValueS | CsvValueF | CsvValueI | CsvValueB
+
+function interpretRaw(v: any): CsvValueSealed | undefined {
     if (typeof v === "boolean") {
-        return {value: v, type: "boolean"};
+        return {value: v, type: CsvValueType.BOOLEAN};
     }
     if (typeof v === "number") {
         if (Number.isInteger(v)) {
-            return {value: v, type: "integer"};
+            return {value: v, type: CsvValueType.INTEGER};
         }
-        return {value: v, type: "float"};
+        return {value: v, type: CsvValueType.FLOAT};
     }
     if (v === null || typeof v === "undefined") {
-        return {value: "", type: "string"};
+        return {value: "", type: CsvValueType.STRING};
     }
     return undefined;
 }
 
-export function interpretValue(v: any): CsvValue {
+export function interpretValue(v: any): CsvValueSealed {
     const rawConverts = interpretRaw(v);
 
     if (typeof rawConverts !== "undefined") {
         return rawConverts;
     }
 
-    if (typeof v !== "string") {
-        v = v.toString();
-    }
+    const str = (typeof v === "string"
+        ? v
+        : v.toString());
 
-    if (v === 'TRUE' || v === 'FALSE') {
-        return {value: v === 'TRUE', type: "boolean"};
+    const isTrue = cmpIgnoreCase(str, 'true') === 0;
+    if (isTrue || cmpIgnoreCase(str, 'false') === 0) {
+        return {value: isTrue, type: CsvValueType.BOOLEAN};
     }
-    const integer = parseInt(v);
+    const integer = parseInt(str);
     if (isNaN(integer)) {
-        return {value: v, type: "string"};
+        const float = parseFloat(str);
+        if (isNaN(float)) {
+            return {value: str, type: CsvValueType.STRING};
+        }
+        return {value: float, type: CsvValueType.FLOAT};
     }
-    return {value: integer, type: "integer"};
+    return {value: integer, type: CsvValueType.INTEGER};
 }
 
-export function stringifyValue(v: CsvValue): string {
+export function stringifyValue(v: CsvValueSealed): string {
     switch (v.type) {
-        case "boolean":
+        case CsvValueType.BOOLEAN:
             return v.value ? 'TRUE' : 'FALSE';
-        case 'integer':
+        case CsvValueType.INTEGER:
             return v.value.toString();
-        case 'float':
+        case CsvValueType.FLOAT:
             return sprintf('%.02f', v.value);
-        case 'string':
+        case CsvValueType.STRING:
             return v.value;
     }
 }
 
-export function compareValue(a: CsvValue, b: CsvValue): number {
-    if (a.type === "string" || b.type === "string") {
+export function compareValue(a: CsvValueSealed, b: CsvValueSealed): number {
+    if (a.type !== b.type) {
+        return a.type > b.type ? 1 : -1;
+    }
+    if (a.type === CsvValueType.STRING && b.type === CsvValueType.STRING) {
         return a.value.toString().localeCompare(b.value.toString());
     }
 
@@ -95,14 +108,14 @@ export function compareValue(a: CsvValue, b: CsvValue): number {
     return -1;
 }
 
-export function reduceValues(previousValue: number, arrValue: CsvValue): number {
+export function reduceValues(previousValue: number, arrValue: CsvValueSealed): number {
     switch (arrValue.type) {
-        case 'float':
-        case 'integer':
+        case CsvValueType.FLOAT:
+        case CsvValueType.INTEGER:
             return previousValue + arrValue.value;
-        case 'string':
+        case CsvValueType.STRING:
             return previousValue;
-        case 'boolean':
+        case CsvValueType.BOOLEAN:
             return previousValue + (arrValue.value ? 1 : 0);
     }
 }
@@ -119,17 +132,17 @@ export class AvgInfo {
     get value(): CsvValueF {
         return {
             value: this.sum / this.count,
-            type: 'float'
+            type: CsvValueType.FLOAT
         };
     }
 
-    addValue(value: CsvValue): AvgInfo {
+    addValue(value: CsvValueSealed): AvgInfo {
         const newSum = reduceValues(this.sum, value);
-        return new AvgInfo(newSum, this.count + (value.type === 'string' ? 0 : 1));
+        return new AvgInfo(newSum, this.count + (value.type === CsvValueType.STRING ? 0 : 1));
     }
 }
 
-export function averageRows(valueInfo: AvgInfo[], row: CsvValue[]): AvgInfo[] {
+export function averageRows(valueInfo: AvgInfo[], row: CsvValueSealed[]): AvgInfo[] {
     return valueInfo.map((v, i) => v.addValue(row[i]));
 }
 
