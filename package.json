@@ -1,5 +1,5 @@
 {
-  "name": "SpiderEyes",
+  "name": "spider-eyes",
   "version": "1.0.0",
   "description": "CSV analyzer.",
   "main": "index.js",
@@ -10,6 +10,8 @@
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.2.2",
+    "@babel/plugin-external-helpers": "^7.2.0",
+    "@babel/preset-env": "^7.3.1",
     "@types/bootstrap": "^4.2.1",
     "@types/cytoscape": "^3.2.9",
     "@types/jquery": "^3.3.29",
@@ -20,8 +22,6 @@
     "@types/reactstrap": "^7.1.3",
     "@types/sprintf-js": "^1.1.1",
     "@types/stream-to-array": "^2.3.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.7.0",
     "bootstrap": "^4.2.1",
     "chokidar-cli": "^1.2.1",
     "cytoscape": "^3.4.0",

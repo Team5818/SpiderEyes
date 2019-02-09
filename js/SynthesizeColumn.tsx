@@ -1,4 +1,4 @@
-import {CsvData} from "./csvData";
+import {CsvColumn, CsvData} from "./csvData";
 import {FormGroup, Input, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
@@ -43,7 +43,7 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
         const newIndex = this.lastSelectedIndex + 1;
 
         const newHeaders = this.props.data.header.slice();
-        newHeaders.splice(newIndex, 0, this.state.name);
+        newHeaders.splice(newIndex, 0, new CsvColumn(this.state.name, newHeaders[newIndex - 1].type));
 
         const newValues = this.props.data.values.map(row => {
             const newRow = row.slice();
@@ -63,7 +63,7 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
                 <FormGroup>
                     <Label className="w-100">
                         Select Columns
-                        <HeaderSelection header={this.props.data.header} selected={this.state.selectedHeaders}/>
+                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedHeaders}/>
                     </Label>
                 </FormGroup>
                 <FormGroup>

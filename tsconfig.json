@@ -4,6 +4,7 @@
   ],
   "compilerOptions": {
     "rootDir": "./js",
+    "outDir": "./ts-bin",
     "target": "ES2015",
     "module": "es2015",
     "lib": [

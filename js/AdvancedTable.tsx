@@ -1,7 +1,7 @@
 import React from "react";
 import {Col, ColProps, Row} from 'reactstrap';
 import {compareValue, stringifyValue} from "./values";
-import {SortDirection} from "./SortDirection";
+import {getSortMultiplier, SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
 import {CsvData} from "./csvData";
 
@@ -73,15 +73,13 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
     }
 
     render() {
-        const resortedValues = this.state.data.values.slice();
-        const sortIdx = this.state.sortIndex;
-        const sortMult = this.state.sortDirection === SortDirection.ASCENDING ? 1 : -1;
-        resortedValues.sort((a, b) => {
-            return sortMult * compareValue(a[sortIdx], b[sortIdx]);
-        });
+        const resortedValues = this.state.data.sort(
+            this.state.sortIndex,
+            this.state.sortDirection
+        );
         return <div>
             <Row noGutters>
-                {this.state.data.header.map((v, i) => this.tableHeader(i, v))}
+                {this.state.data.columnNames.map((v, i) => this.tableHeader(i, v))}
                 {this.tableHeader(undefined, <i className="fas fa-times"/>)}
             </Row>
             {resortedValues.map((valueRow, i) => {
