@@ -4,6 +4,7 @@ import {parse as parseCsv} from "./parse";
 import {CsvValueSealed, CsvValueType, interpretValue} from "./values";
 import {getSortMultiplier, SortDirection} from "../SortDirection";
 import {CsvValueTypeSorting, sortingHelper} from "./sorting";
+import {CharStream} from "../charStream";
 
 /**
  * Column metadata.
@@ -27,8 +28,8 @@ export class CsvColumn {
 }
 
 export class CsvData {
-    static parse(data: string): CsvData {
-        const arr = parseCsv(data);
+    static async parse(data: CharStream): Promise<CsvData> {
+        const arr = await parseCsv(data);
         const rawVals: string[][] = arr.slice(1);
 
         const header: CsvColumn[] = arr[0].map(name => new CsvColumn(name, sortingHelper(CsvValueType.STRING)));

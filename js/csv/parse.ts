@@ -1,4 +1,6 @@
 import {noUnhandledCase} from "../utils";
+import {CharStream, universalNewlines} from "../charStream";
+import {checkNotNull} from "../preconditions";
 
 enum State {
     UNESCAPED,
@@ -7,31 +9,26 @@ enum State {
 }
 
 class Parser {
-    data: string;
+    data: CharStream;
     state: State;
 
     // Return value array
     values: string[][] = [[]];
     // Value being built
     value: string[] = [];
-    // Current scan index
-    i = 0;
+    // Current character
+    _currentChar: Promise<string | undefined> | undefined;
+    get currentChar() : Promise<string | undefined> {
+        return checkNotNull(this._currentChar, "Must have a character.");
+    }
 
-    constructor(data: string) {
-        this.data = data.replace(/\r\n/g, '\n');
+    loadNextChar() {
+        this._currentChar = this.data.nextCharacter();
+    }
+
+    constructor(data: CharStream) {
+        this.data = universalNewlines(data);
         this.state = State.COMMA;
-    }
-
-    charAtOffset(offset: number): string | undefined {
-        const index = this.i + offset;
-        if (index < 0 || index >= this.data.length) {
-            return undefined;
-        }
-        return this.data.charAt(index);
-    }
-
-    get currentChar() {
-        return this.charAtOffset(0);
     }
 
     pushCurrentValue(char: string | undefined) {
@@ -43,7 +40,7 @@ class Parser {
     }
 
     unescaped(char: string | undefined) {
-        this.i++;
+        this.loadNextChar();
         switch (char) {
             case ',':
             case '\n':
@@ -56,11 +53,12 @@ class Parser {
         }
     }
 
-    escaped(char: string) {
+    async escaped(char: string) {
         switch (char) {
             case '"':
-                let nextChar = this.charAtOffset(1);
-                this.i += 2;
+                this.loadNextChar();
+                const nextChar = await this.currentChar;
+                this.loadNextChar();
                 switch (nextChar) {
                     case '"':
                         this.value.push('"');
@@ -77,14 +75,14 @@ class Parser {
                 break;
             default:
                 this.value.push(char);
-                this.i++;
+                this.loadNextChar();
         }
     }
 
     comma(char: string) {
         switch (char) {
             case '"':
-                this.i++;
+                this.loadNextChar();
                 this.state = State.ESCAPED;
                 break;
             default:
@@ -93,18 +91,20 @@ class Parser {
         }
     }
 
-    parse(): string[][] {
-        while (this.i < this.data.length) {
-            const char = this.currentChar;
+    async parse(): Promise<string[][]> {
+        // initialize:
+        this.loadNextChar();
+        while (true) {
+            const char = await this.currentChar;
             if (typeof char === "undefined") {
-                throw new Error("what");
+                break;
             }
             switch (this.state) {
                 case State.UNESCAPED:
                     this.unescaped(char);
                     break;
                 case State.ESCAPED:
-                    this.escaped(char);
+                    await this.escaped(char);
                     break;
                 case State.COMMA:
                     this.comma(char);
@@ -122,6 +122,6 @@ class Parser {
     }
 }
 
-export function parse(data: string): string[][] {
+export function parse(data: CharStream): Promise<string[][]> {
     return new Parser(data).parse();
 }

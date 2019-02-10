@@ -1,8 +1,9 @@
 import React from "react";
-import {checkNotNull, isDefined} from "./preconditions";
+import {isDefined} from "./preconditions";
 import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
 import {CsvData} from "./csv/CsvData";
 import {CsvTabProps} from "./tabTypes";
+import {FileStream} from "./fileStream";
 
 export class UploadCsv extends React.Component<{}, {
     hovered: boolean
@@ -39,16 +40,12 @@ export class UploadCsv extends React.Component<{}, {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = () => {
+        CsvData.parse(new FileStream(csvFile)).then(data => {
             ISTATE.dispatch(Actions.removeAllTabs(undefined));
-            const data = checkNotNull(reader.result);
-            if (typeof data !== "string") {
-                throw new Error("Should be a String");
-            }
-            addAndSelectTab(new CsvTabProps(CsvData.parse(data)));
-        };
-        reader.readAsText(csvFile);
+            addAndSelectTab(new CsvTabProps(data));
+        }).catch(err => {
+            console.error("Error loading CSV data", err);
+        });
     }
 
     onDragOver(e: React.DragEvent<HTMLElement>) {
