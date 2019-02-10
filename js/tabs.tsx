@@ -3,6 +3,7 @@ import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
 import {CsvModController} from "./csv/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
 import {AdvancedTable} from "./AdvancedTable";
+import {noUnhandledCase} from "./utils";
 
 
 export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
@@ -67,6 +68,8 @@ function tabsHeader(props: TabsProps) {
                 return 'file-alt';
             case TabType.AVG:
                 return 'chart-bar';
+            default:
+                return noUnhandledCase(v.type);
         }
     }
 
