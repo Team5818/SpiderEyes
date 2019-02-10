@@ -1,3 +1,5 @@
+import {noUnhandledCase} from "../utils";
+
 enum State {
     UNESCAPED,
     ESCAPED,
@@ -107,6 +109,8 @@ class Parser {
                 case State.COMMA:
                     this.comma(char);
                     break;
+                default:
+                    return noUnhandledCase(this.state);
             }
         }
 

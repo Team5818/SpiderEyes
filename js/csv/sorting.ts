@@ -1,11 +1,11 @@
-import {CsvValueType} from "./values";
+import {Average, CsvValue, CsvValueAvg, CsvValueB, CsvValueF, CsvValueI, CsvValueS, CsvValueType} from "./values";
 
-export interface CsvValueTypeSorting<T> {
-    readonly type: CsvValueType
+export interface CsvValueTypeSorting<V extends CsvValue<any, any>> {
+    readonly type: V['type']
 
-    compare(a: T, b: T): number
+    compare(a: V['value'], b: V['value']): number
 
-    isGoodValue(v: any): v is T
+    isGoodValue(v: any): v is V['value']
 }
 
 function sortBadToBottom<T>(a: T, b: T, isGood: (param: T) => boolean): number | undefined {
@@ -37,10 +37,11 @@ function compareNumber(a: number, b: number): number {
 }
 
 export type SortingHelperMap = {
-    string: CsvValueTypeSorting<string>,
-    float: CsvValueTypeSorting<number>,
-    integer: CsvValueTypeSorting<number>,
-    boolean: CsvValueTypeSorting<boolean>
+    [CsvValueType.STRING]: CsvValueTypeSorting<CsvValueS>,
+    [CsvValueType.FLOAT]: CsvValueTypeSorting<CsvValueF>,
+    [CsvValueType.INTEGER]: CsvValueTypeSorting<CsvValueI>,
+    [CsvValueType.BOOLEAN]: CsvValueTypeSorting<CsvValueB>,
+    [CsvValueType.AVERAGE] : CsvValueTypeSorting<CsvValueAvg>,
 };
 
 const sortingHelpers: SortingHelperMap = {
@@ -68,14 +69,23 @@ const sortingHelpers: SortingHelperMap = {
         }
     },
     [CsvValueType.BOOLEAN]: {
-        type: CsvValueType.INTEGER,
+        type: CsvValueType.BOOLEAN,
         compare(a: boolean, b: boolean): number {
             return compareNumber(+a, +b);
         },
         isGoodValue(v: any): v is boolean {
             return typeof v === "boolean";
         }
-    }
+    },
+    [CsvValueType.AVERAGE]: {
+        type: CsvValueType.AVERAGE,
+        compare(a: Average, b: Average): number {
+            return compareNumber(a.average, b.average);
+        },
+        isGoodValue(v: any): v is Average {
+            return v instanceof Average;
+        }
+    },
 };
 
 export function sortingHelper<T extends keyof SortingHelperMap>(type: T): SortingHelperMap[T] {

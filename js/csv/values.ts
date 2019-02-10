@@ -1,11 +1,12 @@
 import {sprintf} from "sprintf-js";
-import {cmpIgnoreCase} from "../utils";
+import {cmpIgnoreCase, noUnhandledCase} from "../utils";
 
 export enum CsvValueType {
     STRING = "string",
     INTEGER = "integer",
     FLOAT = "float",
     BOOLEAN = "boolean",
+    AVERAGE = "average",
 }
 
 export interface CsvValue<V, T extends CsvValueType> {
@@ -16,16 +17,32 @@ export interface CsvValue<V, T extends CsvValueType> {
 export interface CsvValueS extends CsvValue<string, CsvValueType.STRING> {
 }
 
-export interface CsvValueF  extends CsvValue<number, CsvValueType.FLOAT>{
+export interface CsvValueF extends CsvValue<number, CsvValueType.FLOAT> {
 }
 
-export interface CsvValueI  extends CsvValue<number, CsvValueType.INTEGER>{
+export interface CsvValueI extends CsvValue<number, CsvValueType.INTEGER> {
 }
 
-export interface CsvValueB  extends CsvValue<boolean, CsvValueType.BOOLEAN>{
+export interface CsvValueB extends CsvValue<boolean, CsvValueType.BOOLEAN> {
 }
 
-export type CsvValueSealed = CsvValueS | CsvValueF | CsvValueI | CsvValueB
+/**
+ * An average value, with standard deviation.
+ */
+export class Average {
+    average: number;
+    deviation: number;
+
+    constructor(average: number, deviation: number) {
+        this.average = average;
+        this.deviation = deviation;
+    }
+}
+
+export interface CsvValueAvg extends CsvValue<Average, CsvValueType.AVERAGE> {
+}
+
+export type CsvValueSealed = CsvValueS | CsvValueF | CsvValueI | CsvValueB | CsvValueAvg;
 
 function interpretRaw(v: any): CsvValueSealed | undefined {
     if (typeof v === "boolean") {
@@ -69,6 +86,10 @@ export function interpretValue(v: any): CsvValueSealed {
     return {value: integer, type: CsvValueType.INTEGER};
 }
 
+function floatToString(f: number): string {
+    return sprintf('%.02f', f);
+}
+
 export function stringifyValue(v: CsvValueSealed): string {
     switch (v.type) {
         case CsvValueType.BOOLEAN:
@@ -76,43 +97,67 @@ export function stringifyValue(v: CsvValueSealed): string {
         case CsvValueType.INTEGER:
             return v.value.toString();
         case CsvValueType.FLOAT:
-            return sprintf('%.02f', v.value);
+            return floatToString(v.value);
         case CsvValueType.STRING:
             return v.value;
+        case CsvValueType.AVERAGE:
+            return `${floatToString(v.value.average)} ± ${floatToString(v.value.deviation)}`;
+        default:
+            return noUnhandledCase(v);
     }
 }
 
 export function reduceValues(previousValue: number, arrValue: CsvValueSealed): number {
-    switch (arrValue.type) {
+    const num = numerifyValue(arrValue);
+    return typeof num === "undefined" ? previousValue : previousValue + num;
+}
+
+function numerifyValue(v: CsvValueSealed): number | undefined {
+    switch (v.type) {
         case CsvValueType.FLOAT:
         case CsvValueType.INTEGER:
-            return previousValue + arrValue.value;
-        case CsvValueType.STRING:
-            return previousValue;
+            return v.value;
         case CsvValueType.BOOLEAN:
-            return previousValue + (arrValue.value ? 1 : 0);
+            return +v.value;
+        case CsvValueType.STRING:
+            return undefined;
+        case CsvValueType.AVERAGE:
+            return v.value.average;
+        default:
+            return noUnhandledCase(v);
     }
 }
 
+// Implements Welford's standard variance algorithm.
 export class AvgInfo {
-    sum: number;
+    mean: number;
+    m2: number;
     count: number;
 
-    constructor(sum: number, count: number) {
-        this.sum = sum;
+    constructor(mean: number, m2: number, count: number) {
+        this.mean = mean;
+        this.m2 = m2;
         this.count = count;
     }
 
-    get value(): CsvValueF {
+    get value(): CsvValueAvg {
         return {
-            value: this.sum / this.count,
-            type: CsvValueType.FLOAT
+            value: {
+                average: this.mean,
+                deviation: Math.sqrt(this.m2 / (this.count - 1))
+            },
+            type: CsvValueType.AVERAGE
         };
     }
 
     addValue(value: CsvValueSealed): AvgInfo {
-        const newSum = reduceValues(this.sum, value);
-        return new AvgInfo(newSum, this.count + (value.type === CsvValueType.STRING ? 0 : 1));
+        const asNum = numerifyValue(value) || 0;
+        const newCount = this.count + 1;
+        const delta = asNum - this.mean;
+        const newMean = this.mean + delta / newCount;
+        const delta2 = asNum - this.mean;
+        const newM2 = this.m2 + (delta * delta2);
+        return new AvgInfo(newMean, newM2, newCount);
     }
 }
 
@@ -123,7 +168,7 @@ export function averageRows(valueInfo: AvgInfo[], row: CsvValueSealed[]): AvgInf
 export function genAverageRowArray(length: number): AvgInfo[] {
     const arr: AvgInfo[] = new Array(length);
     for (let i = 0; i < length; i++) {
-        arr[i] = new AvgInfo(0, 0);
+        arr[i] = new AvgInfo(0, 0, 0);
     }
     return arr;
 }
