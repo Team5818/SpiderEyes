@@ -1,9 +1,21 @@
 import React from "react";
 import {isDefined} from "./preconditions";
-import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
+import {Actions, addAndSelectTab, InternalState, ISTATE} from "./reduxish/store";
 import {CsvData} from "./csv/CsvData";
 import {CsvTabProps} from "./tabTypes";
 import {FileStream} from "./fileStream";
+import {CharStream, trackProgress} from "./charStream";
+import {closeModal, injectModal} from "./csv/CsvModal";
+import {connect, Provider} from "react-redux";
+import {LoadingModal} from "./LoadingModal";
+
+const FileLoadingModal = connect(
+    (state: InternalState) => ({
+        progress: state.loadingProgress || 0
+    })
+)(LoadingModal);
+
+const MIN_PROGRESS_SIZE = 8192;
 
 export class UploadCsv extends React.Component<{}, {
     hovered: boolean
@@ -40,7 +52,25 @@ export class UploadCsv extends React.Component<{}, {
             return;
         }
 
-        CsvData.parse(new FileStream(csvFile)).then(data => {
+        let stream: CharStream = new FileStream(csvFile, 128);
+        if (csvFile.size > MIN_PROGRESS_SIZE) {
+            injectModal(<Provider store={ISTATE}>
+                <FileLoadingModal fileName={csvFile.name} maximumProgress={csvFile.size}/>
+            </Provider>);
+            const delta = csvFile.size / 1000;
+            let buffer = 0;
+            let progress = 0;
+            stream = trackProgress(stream, () => {
+                buffer++;
+                if (buffer >= delta || (progress + buffer) === csvFile.size) {
+                    progress += buffer;
+                    buffer = 0;
+                    ISTATE.dispatch(Actions.updateLoadingProgress(progress));
+                }
+            });
+        }
+        CsvData.parse(stream).then(data => {
+            closeModal();
             ISTATE.dispatch(Actions.removeAllTabs(undefined));
             addAndSelectTab(new CsvTabProps(data));
         }).catch(err => {

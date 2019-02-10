@@ -41,3 +41,30 @@ export function universalNewlines(c: CharStream): CharStream {
     }
     return new LineCleaningCharStream(c);
 }
+
+export type ProgressCallback = () => void;
+
+class ProgressTrackingCharStream extends DelegatingCharStream implements CharStream {
+    readonly callbacks: ProgressCallback[];
+
+    constructor(c: CharStream, callbacks: ProgressCallback[]) {
+        super(c);
+        this.callbacks = callbacks;
+    }
+
+    async nextCharacter(): Promise<string | undefined> {
+        const next = await super.nextCharacter();
+        if (typeof next !== "undefined") {
+            this.callbacks.forEach(x => x());
+        }
+        return next;
+    }
+}
+
+export function trackProgress(c: CharStream, ...callbacks: ProgressCallback[]): CharStream {
+    if (c instanceof ProgressTrackingCharStream) {
+        c.callbacks.push(...callbacks);
+        return c;
+    }
+    return new ProgressTrackingCharStream(c, callbacks);
+}

@@ -7,11 +7,13 @@ import {CsvTabProps, TabProps} from "../tabTypes";
 export interface InternalState {
     tabs: TabProps[]
     selectedTab: string
+    loadingProgress: number | undefined
 }
 
 const defaultState: InternalState = {
     tabs: [],
-    selectedTab: ''
+    selectedTab: '',
+    loadingProgress: undefined,
 };
 
 const slicer = afsFactory<InternalState>();
@@ -33,7 +35,10 @@ export const Actions = {
     }),
     removeAllTabs: slicer.newAction<undefined, 'tabs'>('tabs', 'removeAllTabs', () => {
         return [];
-    })
+    }),
+    updateLoadingProgress: slicer.newAction('loadingProgress', 'updateLoadingProgress', (state, payload: number) => {
+        return payload;
+    }),
 };
 
 export function addAndSelectTab(payload: TabProps) {
