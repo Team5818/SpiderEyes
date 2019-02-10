@@ -72,7 +72,7 @@ function createSortArrow(dir: SortDirection, parentProps: SortArrowsProps) {
     />;
 }
 
-export const SortArrows: React.StatelessComponent<SortArrowsProps> = function SortArrows(props) {
+export const SortArrows: React.FunctionComponent<SortArrowsProps> = function SortArrows(props) {
     return <div className="d-flex flex-column">
         {createSortArrow(SortDirection.ASCENDING, props)}
         {props.children}
