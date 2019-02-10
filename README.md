@@ -1,6 +1,6 @@
 # SpiderEyes
 
-![Latest Release](https://img.shields.io/github/release/Team5818/SpiderEyes.svg?style=flat-square)
+[![Latest Release](https://img.shields.io/github/release/Team5818/SpiderEyes.svg?style=flat-square)](https://github.com/Team5818/SpiderEyes/releases)
 
 FRC Scouting web application.
 
