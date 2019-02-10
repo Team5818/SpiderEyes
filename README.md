@@ -1,4 +1,7 @@
 # SpiderEyes
+
+![Latest Release](https://img.shields.io/github/release/Team5818/SpiderEyes.svg?style=flat-square)
+
 FRC Scouting web application.
 
 Takes in CSV files and makes a table from them.
