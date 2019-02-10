@@ -71,12 +71,12 @@ export class UploadCsv extends React.Component<{}, {
         inputs[0].click();
     }
 
-    onFileChosen(e: JQuery.TriggeredEvent) {
+    onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
         const target = e.currentTarget;
         if (target === null) {
             return;
         }
-        let fileList = (target as HTMLInputElement).files;
+        let fileList = target.files;
         if (fileList === null) {
             return;
         }
@@ -94,11 +94,7 @@ export class UploadCsv extends React.Component<{}, {
                onMouseLeave={this.onExit.bind(this)}
                onClick={this.onClick.bind(this)}>
             </i>
-            <input type="file" accept="text/csv;.csv" className="d-none" ref={(r: HTMLInputElement) => {
-                $(r).on('change', e => {
-                    this.onFileChosen(e);
-                });
-            }}/>
+            <input type="file" accept=".csv" className="d-none" onChange={this.onFileChosen.bind(this)}/>
         </label>;
     }
 }
