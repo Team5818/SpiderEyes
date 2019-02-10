@@ -1,4 +1,4 @@
-import {CsvColumn, CsvData} from "./csv/CsvData";
+import {CsvData} from "./csv/CsvData";
 import {FormGroup, Input, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";

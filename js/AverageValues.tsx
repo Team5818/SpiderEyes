@@ -2,9 +2,9 @@ import {CsvData} from "./csv/CsvData";
 import {FormGroup, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
-import {AvgTabProps, CsvTabProps} from "./tabTypes";
+import {AvgTabProps} from "./tabTypes";
 import {HeaderSelection} from "./HeaderSelection";
-import {averageRows, CsvValue, CsvValueSealed, genAverageRowArray, interpretValue} from "./csv/values";
+import {averageRows, CsvValueSealed, genAverageRowArray, interpretValue} from "./csv/values";
 import {CsvModal} from "./csv/CsvModal";
 
 

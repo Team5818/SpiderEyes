@@ -82,32 +82,6 @@ export function stringifyValue(v: CsvValueSealed): string {
     }
 }
 
-export function compareValue(a: CsvValueSealed, b: CsvValueSealed): number {
-    if (a.type !== b.type) {
-        return a.type > b.type ? 1 : -1;
-    }
-    if (a.type === CsvValueType.STRING && b.type === CsvValueType.STRING) {
-        return a.value.toString().localeCompare(b.value.toString());
-    }
-
-    let aNum: number | boolean = +a.value;
-    let bNum: number | boolean = +b.value;
-
-    if (isNaN(aNum) || isNaN(bNum)) {
-        // sort NaNs using the boolean value instead
-        aNum = isNaN(aNum);
-        bNum = isNaN(bNum);
-    }
-
-    if (aNum > bNum) {
-        return 1;
-    }
-    if (aNum === bNum) {
-        return 0;
-    }
-    return -1;
-}
-
 export function reduceValues(previousValue: number, arrValue: CsvValueSealed): number {
     switch (arrValue.type) {
         case CsvValueType.FLOAT:

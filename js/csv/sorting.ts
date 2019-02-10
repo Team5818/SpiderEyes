@@ -1,5 +1,4 @@
 import {CsvValueType} from "./values";
-import {number} from "prop-types";
 
 export interface CsvValueTypeSorting<T> {
     readonly type: CsvValueType
