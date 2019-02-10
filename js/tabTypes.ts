@@ -1,4 +1,4 @@
-import {CsvData} from "./csvData";
+import {CsvData} from "./csv/CsvData";
 
 export enum TabType {
     CSV, AVG

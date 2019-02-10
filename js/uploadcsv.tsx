@@ -1,7 +1,7 @@
 import React from "react";
 import {checkNotNull, isDefined} from "./preconditions";
 import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
-import {CsvData} from "./csvData";
+import {CsvData} from "./csv/CsvData";
 import {CsvTabProps} from "./tabTypes";
 
 export class UploadCsv extends React.Component<{}, {

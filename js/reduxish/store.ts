@@ -1,5 +1,5 @@
 import {createStore, Reducer} from "redux";
-import {CsvData} from "../csvData";
+import {CsvData} from "../csv/CsvData";
 import {afsFactory} from "./slice";
 import {CsvTabProps, TabProps} from "../tabTypes";
 

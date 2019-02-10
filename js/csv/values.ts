@@ -1,11 +1,11 @@
 import {sprintf} from "sprintf-js";
-import {cmpIgnoreCase} from "./utils";
+import {cmpIgnoreCase} from "../utils";
 
 export enum CsvValueType {
-    STRING,
-    INTEGER,
-    FLOAT,
-    BOOLEAN,
+    STRING = "string",
+    INTEGER = "integer",
+    FLOAT = "float",
+    BOOLEAN = "boolean",
 }
 
 export interface CsvValue<V, T extends CsvValueType> {

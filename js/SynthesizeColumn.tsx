@@ -1,11 +1,11 @@
-import {CsvColumn, CsvData} from "./csvData";
+import {CsvColumn, CsvData} from "./csv/CsvData";
 import {FormGroup, Input, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
 import {CsvTabProps} from "./tabTypes";
 import {HeaderSelection} from "./HeaderSelection";
-import {interpretValue, reduceValues} from "./values";
-import {CsvModal} from "./CsvModal";
+import {interpretValue, reduceValues} from "./csv/values";
+import {CsvModal} from "./csv/CsvModal";
 
 
 export type SynthesizeColumnProps = {
@@ -43,7 +43,7 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
         const newIndex = this.lastSelectedIndex + 1;
 
         const newHeaders = this.props.data.header.slice();
-        newHeaders.splice(newIndex, 0, new CsvColumn(this.state.name, newHeaders[newIndex - 1].type));
+        newHeaders.splice(newIndex, 0, newHeaders[newIndex - 1].withName(this.state.name));
 
         const newValues = this.props.data.values.map(row => {
             const newRow = row.slice();

@@ -1,9 +1,9 @@
 import React from "react";
 import {Col, ColProps, Row} from 'reactstrap';
-import {stringifyValue} from "./values";
+import {stringifyValue} from "./csv/values";
 import {SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
-import {CsvData} from "./csvData";
+import {CsvData} from "./csv/CsvData";
 
 type ATCloseButtonProps = {
     rowDrop: () => any

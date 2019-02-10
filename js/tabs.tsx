@@ -1,6 +1,6 @@
 import React from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
-import {CsvModController} from "./csvMod";
+import {CsvModController} from "./csv/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
 import {AdvancedTable} from "./AdvancedTable";
 

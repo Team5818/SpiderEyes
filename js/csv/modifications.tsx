@@ -1,9 +1,9 @@
-import {CsvData} from "./csvData";
+import {CsvData} from "./CsvData";
 import {Button, Nav, NavItem} from "reactstrap";
 import React from "react";
 import {injectModal} from "./CsvModal";
-import {SynthesizeColumn} from "./SynthesizeColumn";
-import {AverageValues} from "./AverageValues";
+import {SynthesizeColumn} from "../SynthesizeColumn";
+import {AverageValues} from "../AverageValues";
 
 export type CsvModControllerProps = {
     data: CsvData
