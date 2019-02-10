@@ -5,9 +5,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import {connect, Provider} from "react-redux";
 import {Actions, InternalState, ISTATE} from "./reduxish/store";
-import {UploadCsv} from "./uploadcsv";
 import {Tabs} from "./tabs";
 import {VERSION} from "./constants";
+import {UploadCsv} from "./uploadcsv";
 
 const LocalTabs = connect(
     (ISTATE: InternalState) => {

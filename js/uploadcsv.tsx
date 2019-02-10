@@ -58,17 +58,10 @@ export class UploadCsv extends React.Component<{}, {
             injectModal(<Provider store={ISTATE}>
                 <FileLoadingModal fileName={csvFile.name} maximumProgress={csvFile.size}/>
             </Provider>);
-            const delta = csvFile.size / 1000;
-            let buffer = 0;
-            let progress = 0;
-            stream = trackProgress(stream, () => {
-                buffer++;
-                if (buffer >= delta || (progress + buffer) === csvFile.size) {
-                    progress += buffer;
-                    buffer = 0;
-                    ISTATE.dispatch(Actions.updateLoadingProgress(progress));
-                }
-            });
+            const delta = Math.min(1000, csvFile.size / 1000);
+            stream = trackProgress(stream, progress => {
+                ISTATE.dispatch(Actions.updateLoadingProgress(progress));
+            }, delta);
         }
         CsvData.parse(stream).then(data => {
             closeModal();

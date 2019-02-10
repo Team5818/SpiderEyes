@@ -42,29 +42,36 @@ export function universalNewlines(c: CharStream): CharStream {
     return new LineCleaningCharStream(c);
 }
 
-export type ProgressCallback = () => void;
+export type ProgressCallback = (value: number) => void;
 
 class ProgressTrackingCharStream extends DelegatingCharStream implements CharStream {
-    readonly callbacks: ProgressCallback[];
+    private readonly callback: ProgressCallback;
+    private readonly delta: number;
+    private buffer: number = 0;
+    private counter: number = 0;
 
-    constructor(c: CharStream, callbacks: ProgressCallback[]) {
+    constructor(c: CharStream, callback: ProgressCallback, delta: number) {
         super(c);
-        this.callbacks = callbacks;
+        this.callback = callback;
+        this.delta = delta;
     }
 
     async nextCharacter(): Promise<string | undefined> {
         const next = await super.nextCharacter();
         if (typeof next !== "undefined") {
-            this.callbacks.forEach(x => x());
+            this.buffer++;
+            if (this.buffer >= this.delta) {
+                this.counter += this.buffer;
+                this.buffer = 0;
+                this.callback(this.counter);
+            }
+        } else {
+            this.callback(this.counter + this.buffer);
         }
         return next;
     }
 }
 
-export function trackProgress(c: CharStream, ...callbacks: ProgressCallback[]): CharStream {
-    if (c instanceof ProgressTrackingCharStream) {
-        c.callbacks.push(...callbacks);
-        return c;
-    }
-    return new ProgressTrackingCharStream(c, callbacks);
+export function trackProgress(c: CharStream, callback: ProgressCallback, delta: number = 1): CharStream {
+    return new ProgressTrackingCharStream(c, callback, delta);
 }

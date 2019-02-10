@@ -10,7 +10,6 @@ export interface LoadingModalProps {
 
 export const LoadingModal: React.FunctionComponent<LoadingModalProps> = ({fileName, maximumProgress, progress}) => {
     const percent = (progress * 100) / maximumProgress;
-    console.log(percent);
     return <Modal isOpen={true} backdrop='static' size="md">
         <ModalHeader>
             Loading <code>{fileName}</code>...
@@ -18,7 +17,7 @@ export const LoadingModal: React.FunctionComponent<LoadingModalProps> = ({fileNa
         <ModalBody>
             <div className="m-auto w-75">
                 <span>{sprintf('%d%%', percent)}</span>
-                <Progress value={Math.round(percent)} max="100" animated/>
+                <Progress value={percent} max="100" animated/>
             </div>
         </ModalBody>
     </Modal>;
