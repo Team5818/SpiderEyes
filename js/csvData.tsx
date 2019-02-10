@@ -1,7 +1,7 @@
 import React from "react";
 
 import {parse as parseCsv} from "./csv-parse";
-import {CsvValue, CsvValueSealed, CsvValueType, interpretValue} from "./values";
+import {CsvValueSealed, CsvValueType, interpretValue} from "./values";
 import {getSortMultiplier, SortDirection} from "./SortDirection";
 import {checkNotNull} from "./preconditions";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import {Col, ColProps, Row} from 'reactstrap';
-import {compareValue, stringifyValue} from "./values";
-import {getSortMultiplier, SortDirection} from "./SortDirection";
+import {stringifyValue} from "./values";
+import {SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
 import {CsvData} from "./csvData";
 
