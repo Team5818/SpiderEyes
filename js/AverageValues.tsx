@@ -1,11 +1,11 @@
-import {CsvData} from "./csvData";
+import {CsvData} from "./csv/CsvData";
 import {FormGroup, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
 import {AvgTabProps, CsvTabProps} from "./tabTypes";
 import {HeaderSelection} from "./HeaderSelection";
-import {averageRows, CsvValue, genAverageRowArray, interpretValue} from "./values";
-import {CsvModal} from "./CsvModal";
+import {averageRows, CsvValue, CsvValueSealed, genAverageRowArray, interpretValue} from "./csv/values";
+import {CsvModal} from "./csv/CsvModal";
 
 
 export type AverageValuesProps = {
@@ -33,7 +33,7 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
         const keyIndex = this.state.selectedKeyHeaders.indexOf(true);
         const newHeaders = this.props.data.header.filter((v, i) => this.isSelected(i));
 
-        const rowMap: Map<any, CsvValue[][]> = new Map();
+        const rowMap: Map<any, CsvValueSealed[][]> = new Map();
         this.props.data.values.forEach(row => {
             const key = row[keyIndex].value;
             let valueColl = rowMap.get(key);
@@ -63,14 +63,14 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
                 <FormGroup>
                     <Label className="w-100">
                         Select Average Key Column (column to match to collect values)
-                        <HeaderSelection header={this.props.data.header} selected={this.state.selectedKeyHeaders}
+                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedKeyHeaders}
                                          max={1}/>
                     </Label>
                 </FormGroup>
                 <FormGroup>
                     <Label className="w-100">
                         Select Average Value Columns (columns to compute averages on)
-                        <HeaderSelection header={this.props.data.header} selected={this.state.selectedValueHeaders}/>
+                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedValueHeaders}/>
                     </Label>
                 </FormGroup>
             </div>

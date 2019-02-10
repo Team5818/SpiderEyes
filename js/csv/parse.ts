@@ -20,11 +20,16 @@ class Parser {
         this.state = State.COMMA;
     }
 
-    dchar(i: number): string | undefined {
-        if (i < 0 || i >= this.data.length) {
+    charAtOffset(offset: number): string | undefined {
+        const index = this.i + offset;
+        if (index < 0 || index >= this.data.length) {
             return undefined;
         }
-        return this.data.charAt(i);
+        return this.data.charAt(index);
+    }
+
+    get currentChar() {
+        return this.charAtOffset(0);
     }
 
     pushCurrentValue(char: string | undefined) {
@@ -52,7 +57,7 @@ class Parser {
     escaped(char: string) {
         switch (char) {
             case '"':
-                let nextChar = this.dchar(this.i + 1);
+                let nextChar = this.charAtOffset(1);
                 this.i += 2;
                 switch (nextChar) {
                     case '"':
@@ -88,7 +93,7 @@ class Parser {
 
     parse(): string[][] {
         while (this.i < this.data.length) {
-            const char = this.dchar(this.i);
+            const char = this.currentChar;
             if (typeof char === "undefined") {
                 throw new Error("what");
             }

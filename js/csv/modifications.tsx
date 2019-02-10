@@ -1,9 +1,9 @@
-import {CsvData} from "./csvData";
+import {CsvData} from "./CsvData";
 import {Button, Nav, NavItem} from "reactstrap";
 import React from "react";
 import {injectModal} from "./CsvModal";
-import {SynthesizeColumn} from "./SynthesizeColumn";
-import {AverageValues} from "./AverageValues";
+import {SynthesizeColumn} from "../SynthesizeColumn";
+import {AverageValues} from "../AverageValues";
 
 export type CsvModControllerProps = {
     data: CsvData
@@ -17,7 +17,7 @@ function calculateAverages(data: CsvData) {
     injectModal(<AverageValues data={data}/>);
 }
 
-export const CsvModController: React.StatelessComponent<CsvModControllerProps> =
+export const CsvModController: React.FunctionComponent<CsvModControllerProps> =
     function CsvModController(props: CsvModControllerProps) {
         return <Nav className="mb-3 justify-content-center">
             <NavItem className="mr-3">

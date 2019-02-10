@@ -1,18 +1,18 @@
 import React from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
-import {CsvModController} from "./csvMod";
+import {CsvModController} from "./csv/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
 import {AdvancedTable} from "./AdvancedTable";
 
 
-export const CsvTab: React.StatelessComponent<CsvTabProps> = function CsvTab(props) {
+export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
     return <div>
         <CsvModController {...props}/>
         <AdvancedTable originalData={props.data}/>
     </div>;
 };
 
-export const AvgTab: React.StatelessComponent<AvgTabProps> = function AvgTab(props) {
+export const AvgTab: React.FunctionComponent<AvgTabProps> = function AvgTab(props) {
     return <AdvancedTable originalData={props.data}/>
 };
 
@@ -110,7 +110,7 @@ function tabsContainer(props: TabsProps) {
     </TabContent>
 }
 
-export const Tabs: React.StatelessComponent<TabsProps> = function Tabs(props: TabsProps) {
+export const Tabs: React.FunctionComponent<TabsProps> = function Tabs(props: TabsProps) {
     return props.tabs.length ? <div>
         {tabsHeader(props)}
         {tabsContainer(props)}
