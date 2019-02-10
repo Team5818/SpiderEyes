@@ -7,6 +7,7 @@ const terser = require('rollup-plugin-terser').terser;
 const replace = require('rollup-plugin-replace');
 const sourceMaps = require('rollup-plugin-sourcemaps');
 const process = require('process');
+const packageJson = require('./package.json');
 
 const dest = './dist/client.js';
 const plugins = [];
@@ -15,7 +16,10 @@ plugins.push(
         typescript: require('typescript')
     }),
     replace({
-        'process.env.NODE_ENV': JSON.stringify(process.env['ENVIRONMENT'] || 'production')
+        values: {
+            'process.env.NODE_ENV': JSON.stringify(process.env['ENVIRONMENT'] || 'production'),
+            '__VERSION__': packageJson.version
+        }
     }),
     nodeResolve({
         jsnext: true,
@@ -34,6 +38,7 @@ plugins.push(
     }),
     sourceMaps()
 );
+
 if (process.env['ENVIRONMENT'] !== 'DEV') {
     plugins.push(
         terser({

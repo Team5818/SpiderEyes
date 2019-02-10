@@ -7,6 +7,7 @@ import {connect, Provider} from "react-redux";
 import {Actions, InternalState, ISTATE} from "./reduxish/store";
 import {UploadCsv} from "./uploadcsv";
 import {Tabs} from "./tabs";
+import {VERSION} from "./constants";
 
 const LocalTabs = connect(
     (ISTATE: InternalState) => {
@@ -35,4 +36,5 @@ $(() => {
         </Provider>
     </div>, document.getElementById('mount'));
     ReactDOM.render(<UploadCsv/>, document.getElementById("mountUpload"));
+    document.getElementById("versionHolder")!!.innerText = VERSION;
 });
