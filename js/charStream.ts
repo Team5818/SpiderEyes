@@ -1,5 +1,15 @@
+export const EndOfStream = {
+    end: true
+};
+
+export function isEoS(result: CharStreamResult): result is typeof EndOfStream {
+    return result === EndOfStream;
+}
+
+export type CharStreamResult = string | typeof EndOfStream;
+
 export interface CharStream {
-    nextCharacter(): Promise<string | undefined>
+    nextBuffer(): Promise<CharStreamResult>
 }
 
 export class DelegatingCharStream implements CharStream {
@@ -9,29 +19,63 @@ export class DelegatingCharStream implements CharStream {
         this.delegate = delegate;
     }
 
-    nextCharacter(): Promise<string | undefined> {
-        return this.delegate.nextCharacter();
+    nextBuffer(): Promise<CharStreamResult> {
+        return this.delegate.nextBuffer();
     }
 }
 
-class LineCleaningCharStream extends DelegatingCharStream implements CharStream {
-    private emitThisFirst: string | undefined = undefined;
+/**
+ * Support for replacing certain parts of a buffer efficiently.
+ */
+export abstract class BufferSplicingCharStream extends DelegatingCharStream {
+    private readonly bufferStack: string[] = [];
 
-    async nextCharacter(): Promise<string | undefined> {
-        if (typeof this.emitThisFirst !== "undefined") {
-            return this.emitThisFirst;
-        }
-        const nextCharacter = await super.nextCharacter();
-        if (nextCharacter === '\r') {
-            const possibleNewline = await super.nextCharacter();
-            if (possibleNewline === '\n') {
-                return '\n';
+    async nextBuffer(): Promise<CharStreamResult> {
+        while (this.bufferStack.length === 0) {
+            const currentBuffer = await super.nextBuffer();
+            if (isEoS(currentBuffer)) {
+                return currentBuffer;
             }
-            // no newline, so just emit both
-            // the '\r' from this round, and the peeked character next time
-            this.emitThisFirst = possibleNewline;
+            this.process(currentBuffer);
         }
-        return nextCharacter;
+        return this.bufferStack.shift()!!;
+    }
+
+    /**
+     * Take a buffer, and put some number of buffers onto the stack.
+     *
+     * If this buffer is to be unprocessed, simply put it all on the stack.
+     */
+    abstract process(buffer: string): void;
+
+    addBuffer(buffer: string) {
+        this.bufferStack.push(buffer);
+    }
+}
+
+class LineCleaningCharStream extends BufferSplicingCharStream implements CharStream {
+    private waitingForNewline = false;
+
+    process(buffer: string): void {
+        const points = Array.from(buffer);
+        for (let i = 0; i < points.length; i++) {
+            const char = points[i];
+            if (this.waitingForNewline) {
+                this.waitingForNewline = false;
+                if (char !== '\n') {
+                    // we must put the '\r' back first.
+                    this.addBuffer('\r');
+                }
+            } else if (char === '\r') {
+                // Take all the points up to but not including '\r'
+                // and push them out. the '\r' will be pushed later
+                // if not matched with a newline.
+                this.addBuffer(points.splice(0, i).join(''));
+                i = 0;
+                this.waitingForNewline = true;
+            }
+        }
+        this.addBuffer(points.join(''));
     }
 }
 
@@ -56,17 +100,19 @@ class ProgressTrackingCharStream extends DelegatingCharStream implements CharStr
         this.delta = delta;
     }
 
-    async nextCharacter(): Promise<string | undefined> {
-        const next = await super.nextCharacter();
-        if (typeof next !== "undefined") {
-            this.buffer++;
+    async nextBuffer(): Promise<CharStreamResult> {
+        const next = await super.nextBuffer();
+        if (!isEoS(next)) {
+            this.buffer += next.length;
             if (this.buffer >= this.delta) {
                 this.counter += this.buffer;
                 this.buffer = 0;
                 this.callback(this.counter);
             }
         } else {
-            this.callback(this.counter + this.buffer);
+            if (this.buffer > 0) {
+                this.callback(this.counter + this.buffer);
+            }
         }
         return next;
     }

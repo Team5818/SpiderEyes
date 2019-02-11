@@ -1,4 +1,4 @@
-import {CharStream} from "./charStream";
+import {CharStream, CharStreamResult, EndOfStream} from "./charStream";
 
 export class FileStream implements CharStream {
 
@@ -6,7 +6,6 @@ export class FileStream implements CharStream {
     private readonly file: Blob;
     private readonly chunkSize: number;
     private filePosition = 0;
-    private currentString: Iterator<string> = ""[Symbol.iterator]();
     private done = false;
 
     constructor(file: Blob, chunkSize: number = 8192) {
@@ -43,23 +42,18 @@ export class FileStream implements CharStream {
         });
     }
 
-    async nextCharacter(): Promise<string | undefined> {
+    async nextBuffer(): Promise<CharStreamResult> {
         if (this.done) {
-            return undefined;
+            return EndOfStream;
         }
-        let next = this.currentString.next();
-        while (next.done) {
-            const bytes = await this.loadNextChunk();
-            if (typeof bytes === "undefined") {
-                // no more data, do one last decode.
-                const lastResult = this.decoder.decode();
-                this.done = true;
-                return lastResult;
-            }
-            this.currentString = this.decoder.decode(bytes, {stream: true})[Symbol.iterator]();
-            next = this.currentString.next();
+        const bytes = await this.loadNextChunk();
+        if (typeof bytes === "undefined") {
+            // no more data, do one last decode.
+            const lastResult = this.decoder.decode();
+            this.done = true;
+            return lastResult.length === 0 ? EndOfStream : lastResult;
         }
-        return next.value;
+        return this.decoder.decode(bytes, {stream: true});
     }
 
 }
