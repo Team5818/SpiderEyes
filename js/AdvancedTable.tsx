@@ -4,6 +4,7 @@ import {stringifyValue} from "./csv/values";
 import {SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
 import {CsvData} from "./csv/CsvData";
+import {AutoSizer, List, ListRowRenderer, WindowScroller, CellMeasurerCache, CellMeasurer} from "react-virtualized";
 
 type ATCloseButtonProps = {
     rowDrop: () => any
@@ -44,6 +45,12 @@ type AdvancedTableState = {
 }
 
 export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedTableState> {
+    private readonly cache = new CellMeasurerCache({
+        defaultHeight: 20,
+        minHeight: 20,
+        fixedWidth: true
+    });
+
     constructor(props: AdvancedTableProps) {
         super(props);
         this.state = {
@@ -77,25 +84,54 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
             this.state.sortIndex,
             this.state.sortDirection
         );
-        return <div>
+
+        const rowRender: ListRowRenderer = ({key, index, style, parent}) => {
+            return <CellMeasurer
+                cache={this.cache}
+                rowIndex={index}
+                key={key}
+                parent={parent}
+            >
+            <Row noGutters key={key} style={style}>
+                {resortedValues[index].map((v, i) => {
+                    return <Col key={`${i}-1`} className="border border-dim p-2">
+                        {stringifyValue(v)}
+                    </Col>;
+                })}
+                <Col className="border border-dim p-2">
+                    <div className="m-auto d-inline-block">
+                        <ATCloseButton rowDrop={() => this.dropRow(index)}/>
+                    </div>
+                </Col>
+            </Row>
+            </CellMeasurer>;
+        };
+
+        return <div className="d-flex h-100 flex-column">
             <Row noGutters>
                 {this.state.data.columnNames.map((v, i) => this.tableHeader(i, v))}
                 {this.tableHeader(undefined, <i className="fas fa-times"/>)}
             </Row>
-            {resortedValues.map((valueRow, i) => {
-                return <Row noGutters key={i}>
-                    {valueRow.map((v, i) => {
-                        return <Col key={`${i}-1`} className="border border-dim p-2">
-                            {stringifyValue(v)}
-                        </Col>;
-                    })}
-                    <Col className="border border-dim p-2">
-                        <div className="m-auto d-inline-block">
-                            <ATCloseButton rowDrop={() => this.dropRow(i)}/>
-                        </div>
-                    </Col>
-                </Row>
-            })}
+            <div className="flex-grow-1">
+                <WindowScroller>
+                    {({height, isScrolling, onChildScroll, scrollTop}) => <AutoSizer disableHeight={true}>
+                        {({width}) =>
+                            <List
+                                autoHeight
+                                height={height}
+                                rowCount={resortedValues.length}
+                                rowRenderer={rowRender}
+                                rowHeight={this.cache.rowHeight}
+                                deferredMeasurementCache={this.cache}
+                                width={width}
+                                isScrolling={isScrolling}
+                                onScroll={onChildScroll}
+                                scrollTop={scrollTop}
+                            />
+                        }
+                    </AutoSizer>}
+                </WindowScroller>
+            </div>
         </div>;
     }
 

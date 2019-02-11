@@ -60,6 +60,11 @@ function interpretRaw(v: any): CsvValueSealed | undefined {
     return undefined;
 }
 
+const booleanStarters = new Set<string>("tTfF");
+function isPotentialBoolean(str: string): boolean {
+    return booleanStarters.has(str[0]);
+}
+
 export function interpretValue(v: any): CsvValueSealed {
     const rawConverts = interpretRaw(v);
 
@@ -71,9 +76,13 @@ export function interpretValue(v: any): CsvValueSealed {
         ? v
         : v.toString());
 
-    const isTrue = cmpIgnoreCase(str, 'true') === 0;
-    if (isTrue || cmpIgnoreCase(str, 'false') === 0) {
-        return {value: isTrue, type: CsvValueType.BOOLEAN};
+    // perf optimization -- cmpIgnoreCase is slow
+    // avoid calling it if there's no chance of a boolean
+    if (isPotentialBoolean(str)) {
+        const isTrue = cmpIgnoreCase(str, 'true') === 0;
+        if (isTrue || cmpIgnoreCase(str, 'false') === 0) {
+            return {value: isTrue, type: CsvValueType.BOOLEAN};
+        }
     }
     const integer = parseInt(str);
     if (isNaN(integer)) {

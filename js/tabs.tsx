@@ -7,9 +7,13 @@ import {noUnhandledCase} from "./utils";
 
 
 export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
-    return <div>
-        <CsvModController {...props}/>
-        <AdvancedTable originalData={props.data}/>
+    return <div className="d-flex flex-column h-100">
+        <div>
+            <CsvModController {...props}/>
+        </div>
+        <div className="flex-grow-1">
+            <AdvancedTable originalData={props.data}/>
+        </div>
     </div>;
 };
 
@@ -103,10 +107,11 @@ function tabsContainer(props: TabsProps) {
         return <AvgTab {...v}/>;
     }
 
-    return <TabContent className="border border-primary rounded p-3">
+    return <TabContent className="border border-primary rounded p-3 h-100">
         {props.tabs.map(v => {
             const element = getElement(v);
-            return <TabPane className={v.id === props.selectedTab ? 'show active' : 'd-none'} key={v.id}>
+            let activeClasses = v.id === props.selectedTab ? 'show active' : 'd-none';
+            return <TabPane className={`h-100 ${activeClasses}`} key={v.id}>
                 {element}
             </TabPane>
         })}
@@ -114,8 +119,12 @@ function tabsContainer(props: TabsProps) {
 }
 
 export const Tabs: React.FunctionComponent<TabsProps> = function Tabs(props: TabsProps) {
-    return props.tabs.length ? <div>
-        {tabsHeader(props)}
-        {tabsContainer(props)}
+    return props.tabs.length ? <div className="d-flex w-100 h-100 flex-column">
+        <div>
+            {tabsHeader(props)}
+        </div>
+        <div className="flex-grow-1">
+            {tabsContainer(props)}
+        </div>
     </div> : null;
 };

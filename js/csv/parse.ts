@@ -130,6 +130,10 @@ class Parser {
             // wrap-up value
             await this.unescaped(undefined);
         }
+        if (this.values[this.values.length - 1].length === 0) {
+            // no last row, drop it.
+            this.values.splice(this.values.length - 1, 1);
+        }
         return this.values;
     }
 }

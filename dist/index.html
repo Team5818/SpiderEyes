@@ -61,8 +61,8 @@
     <!-- Our client! -->
     <script defer src="client.js"></script>
 </head>
-<body class="text-center box-shadow-inset">
-<div id="container" class="p-3 container-fluid">
+<body class="text-center box-shadow-inset" style="overflow-y: scroll">
+<div id="container" class="p-3 container-fluid d-flex flex-column">
     <nav class="navbar navbar-expand-md navbar-dark bg-transparent border-top-0 border-left-0 border-right-0 pb-3 mb-3">
         <a class="navbar-brand" href="#">
             <img src="./img/logo.png" width="48" height="48"
@@ -84,7 +84,7 @@
             </div>
         </div>
     </nav>
-    <div id="mount">
+    <div id="mount" class="flex-grow-1">
     </div>
     <div id="mountModal">
     </div>
