@@ -69,6 +69,8 @@ export class CsvData {
 
     header: CsvColumn[];
     values: CsvValueSealed[][];
+    currentSortKey: number | undefined;
+    currentDirection: SortDirection | undefined;
 
     constructor(header: CsvColumn[], values: CsvValueSealed[][]) {
         this.header = header;
@@ -82,6 +84,41 @@ export class CsvData {
     }
 
     sort(sortKey: number, direction: SortDirection): CsvValueSealed[][] {
+        if (this.currentSortKey === sortKey) {
+            if (this.currentDirection === direction) {
+                // we're already sorted
+            } else {
+                // we're just backwards, we only need to move the bad values
+                this.reverseValues(sortKey, direction);
+            }
+        } else {
+            this.sortValues(sortKey, direction);
+        }
+
+        return this.values;
+    }
+
+    private reverseValues(sortKey: number, direction: SortDirection) {
+        this.currentDirection = direction;
+        const sortingHelper = this.header[sortKey].sortingHelper;
+        const result = new Array<CsvValueSealed[]>();
+        const badValues = new Array<CsvValueSealed[]>();
+
+        this.values.forEach(row => {
+            const v = row[sortKey];
+            if (sortingHelper.isGoodValue(v.value)) {
+                result.push(row);
+            } else {
+                badValues.push(row);
+            }
+        });
+        result.reverse();
+        this.values = result.concat(badValues);
+    }
+
+    private sortValues(sortKey: number, direction: SortDirection) {
+        this.currentSortKey = sortKey;
+        this.currentDirection = direction;
         const sortMult = getSortMultiplier(direction);
         const sortingHelper = this.header[sortKey].sortingHelper;
         const result = new Array<CsvValueSealed[]>();
@@ -95,8 +132,7 @@ export class CsvData {
                 badValues.push(row);
             }
         });
-
-        return result.sort((a, b) => {
+        this.values = result.sort((a, b) => {
             return sortMult * sortingHelper.compare(a[sortKey].value, b[sortKey].value);
         }).concat(badValues);
     }
