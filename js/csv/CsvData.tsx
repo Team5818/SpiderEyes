@@ -83,22 +83,25 @@ export class CsvData {
         return new CsvData(this.header, newValues);
     }
 
-    sort(sortKey: number, direction: SortDirection): CsvValueSealed[][] {
+    sort(sortKey: number, direction: SortDirection): CsvData {
         if (this.currentSortKey === sortKey) {
             if (this.currentDirection === direction) {
                 // we're already sorted
+                return this;
             } else {
                 // we're just backwards, we only need to move the bad values
-                this.reverseValues(sortKey, direction);
+                return this.withValues(this.reverseValues(sortKey, direction));
             }
         } else {
-            this.sortValues(sortKey, direction);
+            return this.withValues(this.sortValues(sortKey, direction));
         }
-
-        return this.values;
     }
 
-    private reverseValues(sortKey: number, direction: SortDirection) {
+    private withValues(values: CsvValueSealed[][]) : CsvData {
+        return new CsvData(this.header, values);
+    }
+
+    private reverseValues(sortKey: number, direction: SortDirection) : CsvValueSealed[][] {
         this.currentDirection = direction;
         const sortingHelper = this.header[sortKey].sortingHelper;
         const result = new Array<CsvValueSealed[]>();
@@ -113,10 +116,10 @@ export class CsvData {
             }
         });
         result.reverse();
-        this.values = result.concat(badValues);
+        return result.concat(badValues);
     }
 
-    private sortValues(sortKey: number, direction: SortDirection) {
+    private sortValues(sortKey: number, direction: SortDirection): CsvValueSealed[][] {
         this.currentSortKey = sortKey;
         this.currentDirection = direction;
         const sortMult = getSortMultiplier(direction);
@@ -132,7 +135,7 @@ export class CsvData {
                 badValues.push(row);
             }
         });
-        this.values = result.sort((a, b) => {
+        return result.sort((a, b) => {
             return sortMult * sortingHelper.compare(a[sortKey].value, b[sortKey].value);
         }).concat(badValues);
     }

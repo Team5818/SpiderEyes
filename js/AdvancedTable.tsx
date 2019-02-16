@@ -4,7 +4,7 @@ import {stringifyValue} from "./csv/values";
 import {SortDirection} from "./SortDirection";
 import {SortArrows} from "./SortArrows";
 import {CsvData} from "./csv/CsvData";
-import {AutoSizer, List, ListRowRenderer, WindowScroller, CellMeasurerCache, CellMeasurer} from "react-virtualized";
+import {AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowRenderer, WindowScroller} from "react-virtualized";
 
 type ATCloseButtonProps = {
     rowDrop: () => any
@@ -48,8 +48,13 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
     private readonly cache = new CellMeasurerCache({
         defaultHeight: 20,
         minHeight: 20,
-        fixedWidth: true
+        fixedWidth: true,
+        keyMapper: (row) => {
+            this.state.data.values[row].map(v => v.value)
+        }
     });
+    private readonly bindRef = (ref: List) => this.innerList = ref;
+    private innerList: List | undefined;
 
     constructor(props: AdvancedTableProps) {
         super(props);
@@ -64,6 +69,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         this.setState(prevState => {
             return {
                 ...prevState,
+                data: prevState.data.sort(index, direction),
                 sortIndex: index,
                 sortDirection: direction
             };
@@ -79,31 +85,37 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         });
     }
 
-    render() {
-        const resortedValues = this.state.data.sort(
-            this.state.sortIndex,
-            this.state.sortDirection
-        );
+    componentDidUpdate() {
+        if (this.innerList) {
+            this.cache.clearAll();
+            this.innerList.forceUpdateGrid();
+            this.innerList.recomputeRowHeights();
+        }
+    }
 
-        const rowRender: ListRowRenderer = ({key, index, style, parent}) => {
+    render() {
+        const values = this.state.data.values;
+
+        const rowRender: (width: number) => ListRowRenderer = (width) => ({key, index, style, parent}) => {
             return <CellMeasurer
                 cache={this.cache}
+                columnIndex={0}
                 rowIndex={index}
                 key={key}
                 parent={parent}
             >
-            <Row noGutters key={key} style={style}>
-                {resortedValues[index].map((v, i) => {
-                    return <Col key={`${i}-1`} className="border border-dim p-2">
-                        {stringifyValue(v)}
-                    </Col>;
-                })}
-                <Col className="border border-dim p-2">
-                    <div className="m-auto d-inline-block">
-                        <ATCloseButton rowDrop={() => this.dropRow(index)}/>
-                    </div>
-                </Col>
-            </Row>
+                <Row noGutters key={key} style={{...style, width: width}}>
+                    {values[index].map((v, i) => {
+                        return <Col key={`${i}-1`} className="border border-dim p-2">
+                            {stringifyValue(v)}
+                        </Col>;
+                    })}
+                    <Col className="border border-dim p-2">
+                        <div className="m-auto d-inline-block">
+                            <ATCloseButton rowDrop={() => this.dropRow(index)}/>
+                        </div>
+                    </Col>
+                </Row>
             </CellMeasurer>;
         };
 
@@ -117,16 +129,18 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
                     {({height, isScrolling, onChildScroll, scrollTop}) => <AutoSizer disableHeight={true}>
                         {({width}) =>
                             <List
+                                ref={this.bindRef}
                                 autoHeight
                                 height={height}
-                                rowCount={resortedValues.length}
-                                rowRenderer={rowRender}
+                                rowCount={values.length}
+                                rowRenderer={rowRender(width)}
                                 rowHeight={this.cache.rowHeight}
                                 deferredMeasurementCache={this.cache}
                                 width={width}
                                 isScrolling={isScrolling}
                                 onScroll={onChildScroll}
                                 scrollTop={scrollTop}
+                                overscanRowCount={30}
                             />
                         }
                     </AutoSizer>}
