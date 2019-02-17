@@ -75,3 +75,11 @@ table.floatThead-table {
     -o-transition: width 0s steps(1000);
     transition: width 0s steps(1000);
 }
+
+.bg-danger-like {
+    background: #540804;
+}
+
+.flex-grow-at-string {
+    flex-grow: 3;
+}

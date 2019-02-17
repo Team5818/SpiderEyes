@@ -39,17 +39,4 @@ $(() => {
     </Provider>, document.getElementById('mount'));
     ReactDOM.render(<UploadCsv/>, document.getElementById("mountUpload"));
     document.getElementById("versionHolder")!!.innerText = VERSION;
-
-    let data = ["Team,Match,A,B,C,D\n"];
-    for (let i = 0; i < 1000; i++) {
-        data.push(`5818,${i},${Math.random() * 100},${Math.random() * 100},${Math.random() * 100},${Math.random() * 100}\n`);
-    }
-    let blob = new Blob(data);
-    CsvData.parse(new FileStream(blob)).then(data => {
-        closeModal();
-        ISTATE.dispatch(Actions.removeAllTabs(undefined));
-        addAndSelectTab(new CsvTabProps(data));
-    }).catch(err => {
-        console.error("Error loading CSV data", err);
-    });
 });
