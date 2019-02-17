@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
 import {CsvModController} from "./csv/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
@@ -30,40 +30,21 @@ export type TabsProps = {
 
 type TabCloseButtonProps = {
     closeTab: () => void
-};
-
-type TabCloseButtonState = {
-    hover: boolean
-};
-
-class TabCloseButton extends React.Component<TabCloseButtonProps, TabCloseButtonState> {
-    constructor(props: TabCloseButtonProps) {
-        super(props);
-        this.state = {
-            hover: false
-        };
-    }
-
-    hover(hover: boolean) {
-        this.setState(prevState => ({
-            ...prevState,
-            hover: hover
-        }));
-    }
-
-    render() {
-        return <div
-            className={`${this.state.hover ? 'text-info' : ''}`}
-            onMouseEnter={() => this.hover(true)}
-            onMouseLeave={() => this.hover(false)}
-            onClick={e => {
-                e.preventDefault();
-                this.props.closeTab();
-            }}>
-            <i className="fas fa-window-close"/>
-        </div>;
-    }
 }
+
+const TabCloseButton: React.FunctionComponent<TabCloseButtonProps> = ({closeTab}) => {
+    const [hover, setHover] = useState(false);
+    return <div
+        className={`${hover ? 'text-info' : ''}`}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onClick={e => {
+            e.preventDefault();
+            closeTab();
+        }}>
+        <i className="fas fa-window-close"/>
+    </div>;
+};
 
 function tabsHeader(props: TabsProps) {
     function getTabType(v: TabProps): string {
