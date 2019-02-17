@@ -4,14 +4,10 @@ import $ from "jquery";
 import React from "react";
 import ReactDOM from "react-dom";
 import {connect, Provider} from "react-redux";
-import {Actions, addAndSelectTab, InternalState, ISTATE} from "./reduxish/store";
+import {Actions, InternalState, ISTATE} from "./reduxish/store";
 import {Tabs} from "./tabs";
 import {VERSION} from "./constants";
 import {UploadCsv} from "./uploadcsv";
-import {CsvData} from "./csv/CsvData";
-import {closeModal} from "./csv/CsvModal";
-import {CsvTabProps} from "./tabTypes";
-import {FileStream} from "./fileStream";
 
 const LocalTabs = connect(
     (ISTATE: InternalState) => {
