@@ -82,7 +82,7 @@ class Parser {
                         this.state = State.COMMA;
                         break;
                     default:
-                        throw new Error(`Invalid post-quote character: '${nextChar}'`);
+                        throw new Error(`Invalid post-quote character: 0x${(nextChar.codePointAt(0) || 0).toString(16)}`);
                 }
                 break;
             default:

@@ -58,7 +58,7 @@ class LineCleaningCharStream extends BufferSplicingCharStream implements CharStr
 
     process(buffer: string): void {
         const points = Array.from(buffer);
-        for (let i = 0; i < points.length; i++) {
+        for (let i = 0; i < points.length; ) {
             const char = points[i];
             if (this.waitingForNewline) {
                 this.waitingForNewline = false;
@@ -70,10 +70,14 @@ class LineCleaningCharStream extends BufferSplicingCharStream implements CharStr
                 // Take all the points up to but not including '\r'
                 // and push them out. the '\r' will be pushed later
                 // if not matched with a newline.
-                this.addBuffer(points.splice(0, i).join(''));
+                const buf = points.splice(0, i + 1).slice(0, i).join('');
+                this.addBuffer(buf);
                 i = 0;
                 this.waitingForNewline = true;
+                // avoid post-increment
+                continue;
             }
+            i++;
         }
         this.addBuffer(points.join(''));
     }
