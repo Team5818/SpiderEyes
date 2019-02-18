@@ -63,6 +63,27 @@ table.floatThead-table {
     filter: brightness(100%);
 }
 
+.sort-arrow-disabled {
+    visibility: hidden;
+}
+
 .modal-huge {
     max-width: 80vw;
+}
+
+/* Smoother progress bars with frequent updates. */
+.progress-bar {
+    -webkit-transition: width 0s steps(1000);
+    -moz-transition: width 0s steps(1000);
+    -ms-transition: width 0s steps(1000);
+    -o-transition: width 0s steps(1000);
+    transition: width 0s steps(1000);
+}
+
+.bg-danger-like {
+    background: #540804;
+}
+
+.flex-grow-at-string {
+    flex-grow: 3;
 }

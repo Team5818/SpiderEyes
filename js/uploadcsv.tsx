@@ -1,8 +1,21 @@
 import React from "react";
-import {checkNotNull, isDefined} from "./preconditions";
-import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
+import {isDefined} from "./preconditions";
+import {Actions, addAndSelectTab, InternalState, ISTATE} from "./reduxish/store";
 import {CsvData} from "./csv/CsvData";
 import {CsvTabProps} from "./tabTypes";
+import {FileStream} from "./fileStream";
+import {CharStream, trackProgress} from "./charStream";
+import {closeModal, injectModal} from "./csv/CsvModal";
+import {connect, Provider} from "react-redux";
+import {LoadingModal} from "./LoadingModal";
+
+const FileLoadingModal = connect(
+    (state: InternalState) => ({
+        progress: state.loadingProgress || 0
+    })
+)(LoadingModal);
+
+const MIN_PROGRESS_SIZE = 8192;
 
 export class UploadCsv extends React.Component<{}, {
     hovered: boolean
@@ -39,16 +52,24 @@ export class UploadCsv extends React.Component<{}, {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = () => {
+        let stream: CharStream = new FileStream(csvFile, 128);
+        if (csvFile.size > MIN_PROGRESS_SIZE) {
+            ISTATE.dispatch(Actions.updateLoadingProgress(0));
+            injectModal(<Provider store={ISTATE}>
+                <FileLoadingModal fileName={csvFile.name} maximumProgress={csvFile.size}/>
+            </Provider>);
+            const delta = Math.min(1000, csvFile.size / 1000);
+            stream = trackProgress(stream, progress => {
+                ISTATE.dispatch(Actions.updateLoadingProgress(progress));
+            }, delta);
+        }
+        CsvData.parse(stream).then(data => {
+            closeModal();
             ISTATE.dispatch(Actions.removeAllTabs(undefined));
-            const data = checkNotNull(reader.result);
-            if (typeof data !== "string") {
-                throw new Error("Should be a String");
-            }
-            addAndSelectTab(new CsvTabProps(CsvData.parse(data)));
-        };
-        reader.readAsText(csvFile);
+            addAndSelectTab(new CsvTabProps(data));
+        }).catch(err => {
+            console.error("Error loading CSV data", err);
+        });
     }
 
     onDragOver(e: React.DragEvent<HTMLElement>) {

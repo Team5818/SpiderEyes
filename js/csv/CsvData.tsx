@@ -4,6 +4,8 @@ import {parse as parseCsv} from "./parse";
 import {CsvValueSealed, CsvValueType, interpretValue} from "./values";
 import {getSortMultiplier, SortDirection} from "../SortDirection";
 import {CsvValueTypeSorting, sortingHelper} from "./sorting";
+import {CharStream} from "../charStream";
+import {AsyncSorter} from "../sort/async";
 
 /**
  * Column metadata.
@@ -27,8 +29,8 @@ export class CsvColumn {
 }
 
 export class CsvData {
-    static parse(data: string): CsvData {
-        const arr = parseCsv(data);
+    static async parse(data: CharStream): Promise<CsvData> {
+        const arr = await parseCsv(data);
         const rawVals: string[][] = arr.slice(1);
 
         const header: CsvColumn[] = arr[0].map(name => new CsvColumn(name, sortingHelper(CsvValueType.STRING)));
@@ -68,6 +70,8 @@ export class CsvData {
 
     header: CsvColumn[];
     values: CsvValueSealed[][];
+    currentSortKey: number | undefined;
+    currentDirection: SortDirection | undefined;
 
     constructor(header: CsvColumn[], values: CsvValueSealed[][]) {
         this.header = header;
@@ -80,7 +84,45 @@ export class CsvData {
         return new CsvData(this.header, newValues);
     }
 
-    sort(sortKey: number, direction: SortDirection): CsvValueSealed[][] {
+    async sort(sortKey: number, direction: SortDirection): Promise<CsvData> {
+        if (this.currentSortKey === sortKey) {
+            if (this.currentDirection === direction) {
+                // we're already sorted
+                return this;
+            } else {
+                // we're just backwards, we only need to move the bad values
+                return this.withValues(this.reverseValues(sortKey, direction));
+            }
+        } else {
+            return this.withValues(await this.sortValues(sortKey, direction));
+        }
+    }
+
+    private withValues(values: CsvValueSealed[][]) : CsvData {
+        return new CsvData(this.header, values);
+    }
+
+    private reverseValues(sortKey: number, direction: SortDirection) : CsvValueSealed[][] {
+        this.currentDirection = direction;
+        const sortingHelper = this.header[sortKey].sortingHelper;
+        const result = new Array<CsvValueSealed[]>();
+        const badValues = new Array<CsvValueSealed[]>();
+
+        this.values.forEach(row => {
+            const v = row[sortKey];
+            if (sortingHelper.isGoodValue(v.value)) {
+                result.push(row);
+            } else {
+                badValues.push(row);
+            }
+        });
+        result.reverse();
+        return result.concat(badValues);
+    }
+
+    private async sortValues(sortKey: number, direction: SortDirection): Promise<CsvValueSealed[][]> {
+        this.currentSortKey = sortKey;
+        this.currentDirection = direction;
         const sortMult = getSortMultiplier(direction);
         const sortingHelper = this.header[sortKey].sortingHelper;
         const result = new Array<CsvValueSealed[]>();
@@ -94,10 +136,10 @@ export class CsvData {
                 badValues.push(row);
             }
         });
-
-        return result.sort((a, b) => {
+        const sorted = await new AsyncSorter(result, (a, b) => {
             return sortMult * sortingHelper.compare(a[sortKey].value, b[sortKey].value);
-        }).concat(badValues);
+        }, 10).sort();
+        return sorted.concat(badValues);
     }
 
     get columnNames(): string[] {

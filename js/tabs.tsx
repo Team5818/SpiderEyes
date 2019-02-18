@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
 import {CsvModController} from "./csv/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
@@ -7,9 +7,13 @@ import {noUnhandledCase} from "./utils";
 
 
 export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
-    return <div>
-        <CsvModController {...props}/>
-        <AdvancedTable originalData={props.data}/>
+    return <div className="d-flex flex-column h-100">
+        <div>
+            <CsvModController {...props}/>
+        </div>
+        <div className="flex-grow-1">
+            <AdvancedTable originalData={props.data}/>
+        </div>
     </div>;
 };
 
@@ -26,40 +30,21 @@ export type TabsProps = {
 
 type TabCloseButtonProps = {
     closeTab: () => void
-};
-
-type TabCloseButtonState = {
-    hover: boolean
-};
-
-class TabCloseButton extends React.Component<TabCloseButtonProps, TabCloseButtonState> {
-    constructor(props: TabCloseButtonProps) {
-        super(props);
-        this.state = {
-            hover: false
-        };
-    }
-
-    hover(hover: boolean) {
-        this.setState(prevState => ({
-            ...prevState,
-            hover: hover
-        }));
-    }
-
-    render() {
-        return <div
-            className={`${this.state.hover ? 'text-info' : ''}`}
-            onMouseEnter={() => this.hover(true)}
-            onMouseLeave={() => this.hover(false)}
-            onClick={e => {
-                e.preventDefault();
-                this.props.closeTab();
-            }}>
-            <i className="fas fa-window-close"/>
-        </div>;
-    }
 }
+
+const TabCloseButton: React.FunctionComponent<TabCloseButtonProps> = ({closeTab}) => {
+    const [hover, setHover] = useState(false);
+    return <div
+        className={`${hover ? 'text-info' : ''}`}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onClick={e => {
+            e.preventDefault();
+            closeTab();
+        }}>
+        <i className="fas fa-window-close"/>
+    </div>;
+};
 
 function tabsHeader(props: TabsProps) {
     function getTabType(v: TabProps): string {
@@ -103,10 +88,11 @@ function tabsContainer(props: TabsProps) {
         return <AvgTab {...v}/>;
     }
 
-    return <TabContent className="border border-primary rounded p-3">
+    return <TabContent className="border border-primary rounded p-3 h-100">
         {props.tabs.map(v => {
             const element = getElement(v);
-            return <TabPane className={v.id === props.selectedTab ? 'show active' : 'd-none'} key={v.id}>
+            let activeClasses = v.id === props.selectedTab ? 'show active' : 'd-none';
+            return <TabPane className={`h-100 ${activeClasses}`} key={v.id}>
                 {element}
             </TabPane>
         })}
@@ -114,8 +100,12 @@ function tabsContainer(props: TabsProps) {
 }
 
 export const Tabs: React.FunctionComponent<TabsProps> = function Tabs(props: TabsProps) {
-    return props.tabs.length ? <div>
-        {tabsHeader(props)}
-        {tabsContainer(props)}
+    return props.tabs.length ? <div className="d-flex w-100 h-100 flex-column">
+        <div>
+            {tabsHeader(props)}
+        </div>
+        <div className="flex-grow-1">
+            {tabsContainer(props)}
+        </div>
     </div> : null;
 };
