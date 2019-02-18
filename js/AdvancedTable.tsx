@@ -34,7 +34,8 @@ export type AdvancedTableProps = {
 }
 
 type AdvancedTableState = {
-    data: CsvData
+    data: CsvData,
+    sorting: boolean,
     sortIndex: number,
     sortDirection: SortDirection
 }
@@ -55,20 +56,32 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         super(props);
         this.state = {
             data: props.originalData,
+            sorting: false,
             sortIndex: 0,
             sortDirection: SortDirection.ASCENDING
         };
     }
 
     resort(index: number, direction: SortDirection) {
+        if (this.state.sorting) {
+            return;
+        }
         this.setState(prevState => {
+            this.state.data.sort(index, direction)
+                .then(data => this.setState(prevState => {
+                    return {
+                        ...prevState,
+                        data: data,
+                        sorting: false,
+                        sortIndex: index,
+                        sortDirection: direction
+                    };
+                }));
             return {
                 ...prevState,
-                data: prevState.data.sort(index, direction),
-                sortIndex: index,
-                sortDirection: direction
+                sorting: true
             };
-        })
+        });
     }
 
     dropRow(row: number) {
@@ -154,8 +167,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
             ? this.state.sortDirection
             : undefined;
         const classNames: string[] = ['border', 'border-dim', 'at-header-plain', 'py-1', 'px-2'];
-        const colProps: Pick<ColProps, 'className' | 'key'> = {
-        };
+        const colProps: Pick<ColProps, 'className' | 'key'> = {};
         if (typeof i !== "undefined") {
             colProps.key = `${i}-1`;
             if (this.state.data.header[i].sortingHelper.type == CsvValueType.STRING) {
@@ -176,7 +188,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
             <div className="d-inline-flex h-100 align-items-center">
                 {typeof i === "undefined"
                     ? innerElement
-                    : <SortArrows direction={headerSort} onSort={d => this.resort(i, d)}>
+                    : <SortArrows enabled={!this.state.sorting} direction={headerSort} onSort={d => this.resort(i, d)}>
                         {innerElement}
                     </SortArrows>
                 }

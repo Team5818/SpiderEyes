@@ -63,6 +63,10 @@ table.floatThead-table {
     filter: brightness(100%);
 }
 
+.sort-arrow-disabled {
+    visibility: hidden;
+}
+
 .modal-huge {
     max-width: 80vw;
 }

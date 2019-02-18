@@ -4,7 +4,8 @@ import React, {MouseEventHandler} from "react";
 type SortArrowProps = {
     sortDirection?: SortDirection,
     arrowDirection: SortDirection,
-    onClick: MouseEventHandler<HTMLElement>
+    onClick: MouseEventHandler<HTMLElement>,
+    enabled: boolean
 }
 
 type SortArrowState = {
@@ -27,16 +28,23 @@ class SortArrow extends React.Component<SortArrowProps, SortArrowState> {
 
     render() {
         const selected = this.props.arrowDirection === this.props.sortDirection;
-        const arrowKind = selected
-            ? 'selected'
-            : this.state.hovered
-                ? 'hovered'
-                : 'plain';
+        const arrowKind = (() => {
+            if (!this.props.enabled) {
+                return 'disabled';
+            }
+            if (selected) {
+                return 'selected';
+            }
+            if (this.state.hovered) {
+                return 'hovered';
+            }
+            return 'plain';
+        })();
         return <div
             className="px-1"
             onMouseEnter={() => this.setHover(true)}
             onMouseLeave={() => this.setHover(false)}
-            onClick={this.props.onClick}>
+            onClick={(e) => this.props.enabled && this.props.onClick(e)}>
             <img src={`./img/sort-arrow.svg`}
                  className={`sort-arrow-${arrowKind}`}
                  width={12}
@@ -58,11 +66,13 @@ export type SortArrowsProps = {
      * Direction to highlight the arrow. If undefined, none are highlighted.
      */
     direction?: SortDirection,
+    enabled: boolean,
     onSort(sortDir: SortDirection): void
 };
 
 function createSortArrow(dir: SortDirection, parentProps: SortArrowsProps) {
     return <SortArrow
+        enabled={parentProps.enabled}
         arrowDirection={dir}
         sortDirection={parentProps.direction}
         onClick={e => {
