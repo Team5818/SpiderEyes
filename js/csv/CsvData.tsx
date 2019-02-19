@@ -98,11 +98,11 @@ export class CsvData {
         }
     }
 
-    private withValues(values: CsvValueSealed[][]) : CsvData {
+    private withValues(values: CsvValueSealed[][]): CsvData {
         return new CsvData(this.header, values);
     }
 
-    private reverseValues(sortKey: number, direction: SortDirection) : CsvValueSealed[][] {
+    private reverseValues(sortKey: number, direction: SortDirection): CsvValueSealed[][] {
         this.currentDirection = direction;
         const sortingHelper = this.header[sortKey].sortingHelper;
         const result = new Array<CsvValueSealed[]>();

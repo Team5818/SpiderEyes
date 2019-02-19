@@ -61,6 +61,7 @@ function interpretRaw(v: any): CsvValueSealed | undefined {
 }
 
 const booleanStarters = new Set<string>("tTfF");
+
 function isPotentialBoolean(str: string): boolean {
     return booleanStarters.has(str[0]);
 }

@@ -41,7 +41,7 @@ export type SortingHelperMap = {
     [CsvValueType.FLOAT]: CsvValueTypeSorting<CsvValueF>,
     [CsvValueType.INTEGER]: CsvValueTypeSorting<CsvValueI>,
     [CsvValueType.BOOLEAN]: CsvValueTypeSorting<CsvValueB>,
-    [CsvValueType.AVERAGE] : CsvValueTypeSorting<CsvValueAvg>,
+    [CsvValueType.AVERAGE]: CsvValueTypeSorting<CsvValueAvg>,
 };
 
 const sortingHelpers: SortingHelperMap = {

@@ -70,7 +70,8 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
                 <FormGroup>
                     <Label className="w-100">
                         Select Average Value Columns (columns to compute averages on)
-                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedValueHeaders}/>
+                        <HeaderSelection header={this.props.data.columnNames}
+                                         selected={this.state.selectedValueHeaders}/>
                     </Label>
                 </FormGroup>
             </div>

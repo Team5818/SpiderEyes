@@ -26,7 +26,7 @@ type TransformCollection<SLICE> = {
 };
 
 class AFSFactoryImpl<STATE extends { [k: string]: any }> implements ActionForSliceFactory<STATE> {
-    sliceTransforms: {[S in StringKeys<STATE>]?: TransformCollection<STATE[S]>} = {};
+    sliceTransforms: { [S in StringKeys<STATE>]?: TransformCollection<STATE[S]> } = {};
     typeCheck = new Set<string>();
 
     newAction<P, S extends StringKeys<STATE>>(stateSlice: S, type: string, transform: ActionForSliceTransform<STATE[S], P>) {
