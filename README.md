@@ -9,6 +9,8 @@ From there you can use the modification buttons at the top to further analyze
 the data. Modification buttons always produce a new tab, so you will never
 delete your original data using them.
 
+## Modification Buttons
+
 #### Synthesize Column
 *Synthesize Column* will allow you to sum multiple values in a data
 row to create a new value, useful for making a general "score" column.
@@ -35,4 +37,15 @@ turns into this:
 |2   |35.00±...|10.00±0.00|
 
 The two columns are averaged independently, and extra columns are removed.
+
+## Building
+This is fairly simple to build. Simply run `npm install` to grab the required
+dependencies, then `node bundle.js` to build everything. You can then serve
+the `dist` folder, and the application is ready!
+
+If you want to develop, the `run.sh` script is very useful. It will start a
+"live server" that automatically reloads on changed. It also watches for
+code changes, so you can code + run quickly. However, it only works at
+full capacity if you specify `DEV` for the `ENVIRONMENT` environment variable,
+e.g. `$ ENVIRONMENT=DEV ./run.sh`.
 
