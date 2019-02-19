@@ -1,5 +1,5 @@
 import React from "react";
-import {Row, Col, Container} from "reactstrap";
+import {Col, Container, Row} from "reactstrap";
 
 export type HeaderSelectionProps = {
     header: string[],
