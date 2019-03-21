@@ -1,11 +1,11 @@
-import {CsvData, CsvRow} from "./csv/CsvData";
+import {CsvData, CsvRow} from "../csv/CsvData";
 import {FormGroup, Label} from "reactstrap";
 import React from "react";
-import {addAndSelectTab} from "./reduxish/store";
-import {AvgTabProps} from "./tabTypes";
-import {HeaderSelection} from "./HeaderSelection";
-import {averageRows, CsvValueSealed, CsvValueType, genAverageRowArray, interpretValue} from "./csv/values";
-import {CsvModal} from "./csv/CsvModal";
+import {addAndSelectTab} from "../reduxish/store";
+import {AvgTabProps} from "../tabTypes";
+import {HeaderSelection} from "../HeaderSelection";
+import {averageRows, CsvValueSealed, CsvValueType, genAverageRowArray, interpretValue} from "../csv/values";
+import {CsvModal} from "../csv/CsvModal";
 
 
 export type AverageValuesProps = {
@@ -55,8 +55,10 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
 
         for (let i = 1; i < newHeaders.length; i++) {
             newHeaders[i] = newHeaders[i]
-                .withType(CsvValueType.AVERAGE)
-                .updateWidth(newValues.map(x => x[i]));
+                .with({
+                    type: CsvValueType.AVERAGE,
+                    maxCharWidth: {compute: newValues.map(x => x[i])}
+                });
         }
 
         addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));

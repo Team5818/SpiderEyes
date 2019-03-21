@@ -1,6 +1,10 @@
 html,
 body {
     background-color: #333;
+    --header-plain: #0a445a;
+    --header-hover: #1186a9;
+    --header-select: #2568ca;
+    --btn-header-plain: #7990A0;
 }
 
 body {
@@ -25,15 +29,34 @@ table.floatThead-table {
 }
 
 .at-header-plain {
-    background-color: #0a445a;
+    background-color: var(--header-plain);
 }
 
 .at-header-hovered {
-    background-color: #1186a9;
+    background-color: var(--header-hover);
 }
 
 .at-header-selected {
-    background-color: #2568ca;
+    background-color: var(--header-select);
+}
+
+.bg-btn-header {
+    background-color: var(--btn-header-plain);
+}
+
+.btn-header {
+    position: relative;
+    z-index: 0;
+    background-color: var(--btn-header-plain);
+}
+
+.btn-header:hover {
+    background-color: #4E6172;
+}
+
+.btn-header:focus {
+    box-shadow: 0 0 0 0.2rem #0A445A;
+    z-index: 10;
 }
 
 .border-dim {
@@ -82,4 +105,8 @@ table.floatThead-table {
 }
 .table-bordered,.table-bordered thead th,.table-bordered th,.table-bordered td {
     border-color: var(--gray);
+}
+
+.btn-square {
+    border-radius: 0;
 }

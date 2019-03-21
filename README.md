@@ -38,6 +38,12 @@ turns into this:
 
 The two columns are averaged independently, and extra columns are removed.
 
+## Column Edits
+You can edit certain properties of columns. Currently, you can only edit the
+_score_ property, which multiplies all of the values in the column by what you
+enter. This is useful for measuring game features in points, rather than
+amounts.
+
 ## Building
 This is fairly simple to build. Simply run `npm install` to grab the required
 dependencies, then `node bundle.js` to build everything. You can then serve

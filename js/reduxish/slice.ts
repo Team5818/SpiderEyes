@@ -2,7 +2,7 @@ import {newAction, OTAction} from "./actionCreators";
 import {AnyAction, Reducer} from "redux";
 import {oKeys, StringKeys} from "../utils";
 
-export type ActionForSliceTransform<STATE, P> = (prevState: STATE, payload: P) => STATE
+export type ActionForSliceTransform<STATE, P> = (prevState: STATE | undefined, payload: P) => STATE
 
 export interface ActionForSlice<P> {
     (payload: P): OTAction<P>
