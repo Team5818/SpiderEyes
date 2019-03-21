@@ -1,5 +1,5 @@
 import React from "react";
-import {Col, Container, Row, Table} from "reactstrap";
+import {Container, Table} from "reactstrap";
 
 export type HeaderSelectionProps = {
     header: string[],
@@ -84,6 +84,7 @@ export class HeaderSelection extends React.Component<HeaderSelectionProps, Heade
         return <Container>
             <Table>
                 <thead>
+                <tr>
                     {this.props.header.map((v, i) => {
                         const bgColor = this.props.selected[i]
                             ? 'bg-primary'
@@ -91,27 +92,30 @@ export class HeaderSelection extends React.Component<HeaderSelectionProps, Heade
                                 ? 'bg-secondary'
                                 : '';
                         return <th key={i}
-                                    className={[
-                                        'border',
-                                        'border-dim',
-                                        'align-middle',
-                                        'p-1',
-                                        'd-inline-flex',
-                                        'align-items-center',
-                                        bgColor
-                                    ].join(' ')}
-                                    style={{
-                                        cursor: 'pointer'
-                                    }}
-                                    onMouseEnter={() => this.hover(i, true)}
-                                    onMouseLeave={() => this.hover(i, false)}
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        this.toggle(i);
-                                    }}>
-                            {v}
+                                   className={[
+                                       'border',
+                                       'border-dim',
+                                       'align-middle',
+                                       'p-1',
+                                       bgColor
+                                   ].join(' ')}
+                                   style={{
+                                       cursor: 'pointer'
+                                   }}
+                                   onMouseEnter={() => this.hover(i, true)}
+                                   onMouseLeave={() => this.hover(i, false)}
+                                   onClick={e => {
+                                       e.preventDefault();
+                                       this.toggle(i);
+                                   }}>
+                            <div className="d-inline-flex h-100 align-items-center">
+                                <div className="d-flex flex-column">
+                                    {v}
+                                </div>
+                            </div>
                         </th>;
                     })}
+                </tr>
                 </thead>
             </Table>
         </Container>;
