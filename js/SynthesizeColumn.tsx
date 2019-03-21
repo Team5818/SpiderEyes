@@ -63,8 +63,8 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
                 <FormGroup>
                     <Label className="w-100">
                         Select Columns
-                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedHeaders}/>
                     </Label>
+                    <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedHeaders}/>
                 </FormGroup>
                 <FormGroup>
                     <Input className="w-25 m-auto"
