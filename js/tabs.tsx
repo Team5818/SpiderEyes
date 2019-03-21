@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
-import {CsvModController} from "./csv/modifications";
+import {CsvModController} from "./mods/modifications";
 import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
 import {AdvancedTable} from "./AdvancedTable";
 import {noUnhandledCase} from "./utils";
@@ -12,13 +12,13 @@ export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(prop
             <CsvModController {...props}/>
         </div>
         <div className="flex-grow-1">
-            <AdvancedTable originalData={props.data}/>
+            <AdvancedTable data={props.data} tabId={props.id}/>
         </div>
     </div>;
 };
 
 export const AvgTab: React.FunctionComponent<AvgTabProps> = function AvgTab(props) {
-    return <AdvancedTable originalData={props.data}/>
+    return <AdvancedTable data={props.data} tabId={props.id}/>;
 };
 
 export type TabsProps = {

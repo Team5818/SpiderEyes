@@ -12,7 +12,7 @@ import {UploadCsv} from "./uploadcsv";
 const LocalTabs = connect(
     (ISTATE: InternalState) => {
         return {
-            tabs: ISTATE.tabs,
+            tabs: Array.from(ISTATE.tabs.values()),
             selectedTab: ISTATE.selectedTab
         }
     },

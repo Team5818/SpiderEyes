@@ -7,12 +7,16 @@ import {CsvValueTypeSorting, sortingHelper} from "./sorting";
 import {CharStream} from "../charStream";
 import {AsyncSorter} from "../sort/async";
 import {Table} from "../Table";
+import {noUnhandledCase} from "../utils";
 
 const MAX_COL_WIDTH = 15;
 
-function widthOfValue(value: CsvValueSealed): number {
-    return stringifyValue(value).length + 1;
-}
+type CsvColumnUpdate = {
+    name?: string,
+    type?: CsvValueType,
+    maxCharWidth?: number | { compute: CsvValueSealed[] },
+    score?: number
+};
 
 /**
  * Column metadata.
@@ -24,37 +28,57 @@ export class CsvColumn {
      * Size of the largest column, in characters (approx.).
      */
     readonly maxCharWidth: number;
+    readonly score: number;
 
     constructor(name: string,
                 sortingHelper: CsvValueTypeSorting<any>,
-                maxCharWidth: number) {
+                maxCharWidth: number,
+                score: number = 1) {
         this.name = name;
         this.sortingHelper = sortingHelper;
         this.maxCharWidth = maxCharWidth;
+        this.score = score;
     }
 
-    withName(name: string): CsvColumn {
-        return new CsvColumn(name, this.sortingHelper, this.maxCharWidth);
-    }
-
-    withType(type: CsvValueType): CsvColumn {
-        return new CsvColumn(this.name, sortingHelper(type), this.maxCharWidth);
-    }
-
-    withWidth(maxCharWidth: number): CsvColumn {
-        return new CsvColumn(this.name, this.sortingHelper, maxCharWidth);
+    private widthOfValue(value: CsvValueSealed): number {
+        return stringifyValue(value, this.score).length + 1;
     }
 
     updateWidth(values: CsvValueSealed[]): CsvColumn {
-        if (values.length === 0) {
-            return this;
+        return this.with({
+            maxCharWidth: {compute: values}
+        });
+    }
+
+    with(fieldUpdate: CsvColumnUpdate): CsvColumn {
+        const name = fieldUpdate.name || this.name;
+        const helper = typeof fieldUpdate.type !== "undefined"
+            ? sortingHelper(fieldUpdate.type)
+            : this.sortingHelper;
+        const maxCharWidth = this.computeMaxCharWidth(fieldUpdate.maxCharWidth);
+        const score = fieldUpdate.score || this.score;
+        return new CsvColumn(name, helper, maxCharWidth, score);
+    }
+
+    private computeMaxCharWidth(maxCharWidth: undefined | number | { compute: CsvValueSealed[] }): number {
+        switch (typeof maxCharWidth) {
+            case "undefined":
+                return this.maxCharWidth;
+            case "number":
+                return maxCharWidth;
+            case "object":
+                if (maxCharWidth.compute.length === 0) {
+                    return this.maxCharWidth;
+                }
+                let newWidth = 1;
+                for (let value of maxCharWidth.compute) {
+                    let w = this.widthOfValue(value);
+                    newWidth = Math.max(newWidth, w);
+                }
+                return Math.min(newWidth, MAX_COL_WIDTH);
+            default:
+                return noUnhandledCase(maxCharWidth);
         }
-        let newWidth = 1;
-        for (let value of values) {
-            let w = widthOfValue(value);
-            newWidth = Math.max(newWidth, w);
-        }
-        return this.withWidth(Math.min(newWidth, MAX_COL_WIDTH));
     }
 }
 
@@ -66,6 +90,11 @@ export class CsvRow {
         this.data = data;
         this.originalIndex = originalIndex;
     }
+}
+
+export interface Sort {
+    key: number
+    direction: SortDirection
 }
 
 export class CsvData {
@@ -106,7 +135,7 @@ export class CsvData {
                     .reduce((prev, curr) => {
                         return prev[1] < curr[1] ? curr : prev;
                     })[0];
-                header[i] = header[i].withType(type);
+                header[i] = header[i].with({type: type});
             }
         }
 
@@ -115,46 +144,57 @@ export class CsvData {
 
     header: CsvColumn[];
     values: CsvRow[];
-    currentSortKey: number | undefined;
-    currentDirection: SortDirection | undefined;
+    currentSort: Sort | undefined;
 
-    constructor(header: CsvColumn[], values: CsvRow[]) {
+    constructor(header: CsvColumn[], values: CsvRow[], currentSort?: Sort) {
         this.header = header;
         this.values = values;
+        this.currentSort = currentSort;
     }
 
     removeRow(row: number): CsvData {
         const newValues = this.values.slice();
         newValues.splice(row, 1);
-        return new CsvData(this.header, newValues);
+        return this.withValues(newValues);
     }
 
-    async sort(sortKey: number, direction: SortDirection): Promise<CsvData> {
-        if (this.currentSortKey === sortKey) {
-            if (this.currentDirection === direction) {
+    withColumn(colIndex: number, col: CsvColumn) {
+        return new CsvData(
+            this.header.map((x, i) => i === colIndex ? col : x),
+            this.values,
+            this.currentSort
+        );
+    }
+
+    async sort(sort: Sort): Promise<CsvData> {
+        if (this.currentSort && this.currentSort.key === sort.key) {
+            if (this.currentSort.direction === sort.direction) {
                 // we're already sorted
                 return this;
             } else {
                 // we're just backwards, we only need to move the bad values
-                return this.withValues(await this.reverseValues(sortKey, direction));
+                return this.withValues(await this.reverseValues(sort), sort);
             }
         } else {
-            return this.withValues(await this.sortValues(sortKey, direction));
+            return this.withValues(await this.sortValues(sort), sort);
         }
     }
 
-    private withValues(values: CsvRow[]): CsvData {
-        return new CsvData(this.header, values);
+    private withValues(values: CsvRow[], sort?: Sort): CsvData {
+        return new CsvData(
+            this.header,
+            values,
+            sort || this.currentSort
+        );
     }
 
-    private async reverseValues(sortKey: number, direction: SortDirection): Promise<CsvRow[]> {
-        this.currentDirection = direction;
-        const sortingHelper = this.header[sortKey].sortingHelper;
+    private async reverseValues(sort: Sort): Promise<CsvRow[]> {
+        const sortingHelper = this.header[sort.key].sortingHelper;
         const result = new Array<CsvRow>();
         const badValues = new Array<CsvRow>();
 
         this.values.forEach(row => {
-            const v = row.data[sortKey];
+            const v = row.data[sort.key];
             if (sortingHelper.isGoodValue(v.value)) {
                 result.push(row);
             } else {
@@ -165,16 +205,14 @@ export class CsvData {
         return result.concat(badValues);
     }
 
-    private async sortValues(sortKey: number, direction: SortDirection): Promise<CsvRow[]> {
-        this.currentSortKey = sortKey;
-        this.currentDirection = direction;
-        const sortMult = getSortMultiplier(direction);
-        const sortingHelper = this.header[sortKey].sortingHelper;
+    private async sortValues(sort: Sort): Promise<CsvRow[]> {
+        const sortMult = getSortMultiplier(sort.direction);
+        const sortingHelper = this.header[sort.key].sortingHelper;
         const result = new Array<CsvRow>();
         const badValues = new Array<CsvRow>();
 
         this.values.forEach(row => {
-            const v = row.data[sortKey];
+            const v = row.data[sort.key];
             if (sortingHelper.isGoodValue(v.value)) {
                 result.push(row);
             } else {
@@ -182,7 +220,7 @@ export class CsvData {
             }
         });
         const sorted = await new AsyncSorter(result, (a, b) => {
-            return sortMult * sortingHelper.compare(a.data[sortKey].value, b.data[sortKey].value);
+            return sortMult * sortingHelper.compare(a.data[sort.key].value, b.data[sort.key].value);
         }, 10).sort();
         return sorted.concat(badValues);
     }

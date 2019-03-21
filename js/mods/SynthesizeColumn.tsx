@@ -1,11 +1,11 @@
-import {CsvData, CsvRow} from "./csv/CsvData";
+import {CsvData, CsvRow} from "../csv/CsvData";
 import {FormGroup, Input, Label} from "reactstrap";
 import React from "react";
-import {addAndSelectTab} from "./reduxish/store";
-import {CsvTabProps} from "./tabTypes";
-import {HeaderSelection} from "./HeaderSelection";
-import {interpretValue, reduceValues} from "./csv/values";
-import {CsvModal} from "./csv/CsvModal";
+import {addAndSelectTab} from "../reduxish/store";
+import {CsvTabProps} from "../tabTypes";
+import {HeaderSelection} from "../HeaderSelection";
+import {interpretValue, reduceValues} from "../csv/values";
+import {CsvModal} from "../csv/CsvModal";
 
 
 export type SynthesizeColumnProps = {
@@ -43,13 +43,15 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
         const newIndex = this.lastSelectedIndex + 1;
 
         const newHeaders = this.props.data.header.slice();
-        newHeaders.splice(newIndex, 0, newHeaders[newIndex - 1].withName(this.state.name));
+        newHeaders.splice(newIndex, 0,
+            newHeaders[newIndex - 1].with({name: this.state.name, score: 1}));
 
         const newValues = this.props.data.values.map(row => {
             const newRow = row.data.slice();
             const value = row.data
+                .map((v, i) => ({value: v, score: this.props.data.header[i].score}))
                 .filter((v, i) => this.state.selectedHeaders[i])
-                .reduce(reduceValues, 0);
+                .reduce((prev, next) => reduceValues(prev, next.value, next.score), 0);
             newRow.splice(newIndex, 0, interpretValue(value));
             return newRow;
         });

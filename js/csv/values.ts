@@ -100,29 +100,33 @@ function floatToString(f: number): string {
     return sprintf('%.02f', f);
 }
 
-export function stringifyValue(v: CsvValueSealed): string {
+export function stringifyValue(v: CsvValueSealed, score: number = 1): string {
     switch (v.type) {
         case CsvValueType.BOOLEAN:
-            return v.value ? 'TRUE' : 'FALSE';
+            if (score === 1) {
+                return v.value ? 'TRUE' : 'FALSE';
+            } else {
+                return ((v.value ? 1 : 0) * score).toString();
+            }
         case CsvValueType.INTEGER:
-            return v.value.toString();
+            return (v.value * score).toString();
         case CsvValueType.FLOAT:
-            return floatToString(v.value);
+            return floatToString(v.value * score);
         case CsvValueType.STRING:
             return v.value;
         case CsvValueType.AVERAGE:
-            return `${floatToString(v.value.average)} ± ${floatToString(v.value.deviation)}`;
+            return `${floatToString(v.value.average * score)} ± ${floatToString(v.value.deviation * score)}`;
         default:
             return noUnhandledCase(v);
     }
 }
 
-export function reduceValues(previousValue: number, arrValue: CsvValueSealed): number {
-    const num = numerifyValue(arrValue);
-    return typeof num === "undefined" ? previousValue : previousValue + num;
+export function reduceValues(previousValue: number, arrValue: CsvValueSealed, score: number = 1): number {
+    const num = numerifyValue(arrValue) * score;
+    return previousValue + num;
 }
 
-function numerifyValue(v: CsvValueSealed): number | undefined {
+function numerifyValue(v: CsvValueSealed): number {
     switch (v.type) {
         case CsvValueType.FLOAT:
         case CsvValueType.INTEGER:
@@ -130,7 +134,7 @@ function numerifyValue(v: CsvValueSealed): number | undefined {
         case CsvValueType.BOOLEAN:
             return +v.value;
         case CsvValueType.STRING:
-            return undefined;
+            return 0;
         case CsvValueType.AVERAGE:
             return v.value.average;
         default:
