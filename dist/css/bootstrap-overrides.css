@@ -1,25 +1,14 @@
 html,
 body {
-    min-height: 100vh;
     background-color: #333;
 }
 
 body {
-    display: -ms-flexbox;
-    display: -webkit-box;
-    display: flex;
-    -ms-flex-pack: center;
-    -webkit-box-pack: center;
-    justify-content: center;
     color: #fff;
 }
 
 .box-shadow-inset {
     box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
-}
-
-#mount {
-    max-height: 100%;
 }
 
 #mountUpload {
@@ -86,4 +75,11 @@ table.floatThead-table {
 
 .flex-grow-at-string {
     flex-grow: 3;
+}
+
+.table thead th {
+    vertical-align: inherit;
+}
+.table-bordered,.table-bordered thead th,.table-bordered th,.table-bordered td {
+    border-color: var(--gray);
 }

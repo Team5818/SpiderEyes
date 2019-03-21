@@ -29,7 +29,7 @@ plugins.push(
         include: 'node_modules/**',
         namedExports: {
             'sprintf-js': ['sprintf'],
-            'react-is': ['isValidElementType']
+            'react-is': ['isValidElementType', 'isContextConsumer']
         }
     }),
     babel({

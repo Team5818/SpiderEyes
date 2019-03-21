@@ -1,10 +1,10 @@
-import {CsvData} from "./csv/CsvData";
+import {CsvData, CsvRow} from "./csv/CsvData";
 import {FormGroup, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "./reduxish/store";
 import {AvgTabProps} from "./tabTypes";
 import {HeaderSelection} from "./HeaderSelection";
-import {averageRows, CsvValueSealed, genAverageRowArray, interpretValue} from "./csv/values";
+import {averageRows, CsvValueSealed, CsvValueType, genAverageRowArray, interpretValue} from "./csv/values";
 import {CsvModal} from "./csv/CsvModal";
 
 
@@ -25,24 +25,23 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
         }
     }
 
-    private isSelected(i: number) {
-        return this.state.selectedValueHeaders[i] || this.state.selectedKeyHeaders[i];
-    }
-
     createTab() {
         const keyIndex = this.state.selectedKeyHeaders.indexOf(true);
-        const newHeaders = this.props.data.header.filter((v, i) => this.isSelected(i));
+        const headers = this.props.data.header;
+        const newHeaders = [headers[keyIndex]].concat(
+            headers.filter((v, i) => this.state.selectedValueHeaders[i])
+        );
 
         const rowMap: Map<any, CsvValueSealed[][]> = new Map();
         this.props.data.values.forEach(row => {
-            const key = row[keyIndex].value;
+            const key = row.data[keyIndex].value;
             let valueColl = rowMap.get(key);
             if (typeof valueColl === "undefined") {
                 valueColl = [];
                 rowMap.set(key, valueColl);
             }
 
-            valueColl.push(row.filter((v, i) => this.state.selectedValueHeaders[i]));
+            valueColl.push(row.data.filter((v, i) => this.state.selectedValueHeaders[i]));
         });
 
         const numSelectedValues = this.state.selectedValueHeaders.reduce((sum, val) => sum + (val ? 1 : 0), 0);
@@ -54,7 +53,13 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
             );
         });
 
-        addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues)));
+        for (let i = 1; i < newHeaders.length; i++) {
+            newHeaders[i] = newHeaders[i]
+                .withType(CsvValueType.AVERAGE)
+                .updateWidth(newValues.map(x => x[i]));
+        }
+
+        addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));
     }
 
     render() {

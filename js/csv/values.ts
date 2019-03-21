@@ -152,10 +152,7 @@ export class AvgInfo {
 
     get value(): CsvValueAvg {
         return {
-            value: {
-                average: this.mean,
-                deviation: Math.sqrt(this.m2 / (this.count - 1))
-            },
+            value: new Average(this.mean, Math.sqrt(this.m2 / (this.count - 1))),
             type: CsvValueType.AVERAGE
         };
     }
