@@ -49,7 +49,7 @@ export namespace CsvValueType {
     }
 }
 
-interface CsvValueToValueType {
+export interface CsvValueToValueType {
     [CsvValueType.STRING]: string
     [CsvValueType.FLOAT]: number
     [CsvValueType.INTEGER]: number

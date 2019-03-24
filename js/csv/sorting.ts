@@ -1,11 +1,11 @@
-import {Average, CsvValue, CsvValueAvg, CsvValueB, CsvValueF, CsvValueI, CsvValueS, CsvValueType} from "./values";
+import {Average, CsvValueToValueType, CsvValueType} from "./values";
 
-export interface CsvValueTypeSorting<V extends CsvValue<any, any>> {
-    readonly type: V['type']
+export interface CsvValueTypeSorting<T extends CsvValueType> {
+    readonly type: T
 
-    compare(a: V['value'], b: V['value']): number
+    compare(a: CsvValueToValueType[T], b: CsvValueToValueType[T]): number
 
-    isGoodValue(v: any): v is V['value']
+    isGoodValue(v: any): v is CsvValueToValueType[T]
 }
 
 function sortBadToBottom<T>(a: T, b: T, isGood: (param: T) => boolean): number | undefined {
@@ -37,11 +37,7 @@ function compareNumber(a: number, b: number): number {
 }
 
 export type SortingHelperMap = {
-    [CsvValueType.STRING]: CsvValueTypeSorting<CsvValueS>,
-    [CsvValueType.FLOAT]: CsvValueTypeSorting<CsvValueF>,
-    [CsvValueType.INTEGER]: CsvValueTypeSorting<CsvValueI>,
-    [CsvValueType.BOOLEAN]: CsvValueTypeSorting<CsvValueB>,
-    [CsvValueType.AVERAGE]: CsvValueTypeSorting<CsvValueAvg>,
+    [P in CsvValueType]: CsvValueTypeSorting<P>
 };
 
 const sortingHelpers: SortingHelperMap = {

@@ -127,7 +127,13 @@ async function watch() {
 }
 
 if (process.env['ENVIRONMENT'] === 'DEV') {
-    watch();
+    watch().catch(error => {
+        console.error("Error during watch process", error);
+        process.exit(1);
+    });
 } else {
-    build();
+    build().catch(error => {
+        console.error("Error during build process", error);
+        process.exit(1);
+    });
 }
