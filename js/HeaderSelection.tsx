@@ -1,123 +1,72 @@
-import React from "react";
+import React, {useState} from "react";
 import {Container, Table} from "reactstrap";
+
+/**
+ * Given a type S, extract all keys that map to boolean arrays.
+ */
+export type BoolArrayKey<S> = {
+    [K in keyof S]: S[K] extends boolean[] ? K : never;
+}[keyof S];
 
 export type HeaderSelectionProps = {
     header: string[],
     selected: boolean[],
+    setSelected(index: number, selected: boolean): void,
     max?: number
 };
-type HeaderSelectionState = {
-    selectionQueue: number[]
-    selected: boolean[]
-    hovered: boolean[]
-};
 
-export class HeaderSelection extends React.Component<HeaderSelectionProps, HeaderSelectionState> {
-    constructor(props: HeaderSelectionProps) {
-        super(props);
-        this.state = {
-            selectionQueue: [],
-            selected: props.selected.slice(),
-            hovered: new Array(props.selected.length)
+export const HeaderSelection: React.FunctionComponent<HeaderSelectionProps> = (
+    {header, selected, setSelected, max}
+) => {
+    const [hovered, setHovered] = useState(-1);
+    const maxSelectable = typeof max === "undefined" ? header.length : max;
+
+    function toggle(index: number) {
+        if (selected.reduce((acc, next) => acc + (next ? 1 : 0), 0) >= maxSelectable) {
+            if (!selected[index]) {
+                // unselect one
+                setSelected(selected.indexOf(true), false);
+            }
         }
+        setSelected(index, !selected[index]);
     }
 
-    get maxSelectable() {
-        const max = this.props.max;
-        return typeof max === "undefined" ? this.props.header.length : max;
-    }
-
-
-    toggle(i: number) {
-        this.setState(prevState => {
-            const selected = prevState.selected.slice();
-            const selectionQueue = prevState.selectionQueue.slice();
-
-            const setSelected = (idx: number, state: boolean) => {
-                this.props.selected[idx] = state;
-                selected[idx] = state;
-            };
-
-            if (selected[i]) {
-                const queueIndex = selectionQueue.indexOf(i);
-                // remove from queue
-                selectionQueue.splice(queueIndex, 1);
-
-                setSelected(i, false);
-            } else {
-                // uncheck if needed
-                selectionQueue.push(i);
-                if (selectionQueue.length > this.maxSelectable) {
-                    const item = selectionQueue.shift();
-                    if (typeof item !== "undefined") {
-                        setSelected(item, false);
-                    }
-                }
-
-                setSelected(i, true);
-            }
-
-            return {
-                ...prevState,
-                selected: selected,
-                selectionQueue: selectionQueue
-            }
-        })
-    }
-
-    hover(i: number, hover: boolean) {
-        this.setState(prevState => {
-            if (hover != prevState.hovered[i]) {
-                const hovered = prevState.hovered.slice();
-                hovered[i] = hover;
-                return {
-                    ...prevState,
-                    hovered: hovered
-                }
-            } else {
-                return prevState;
-            }
-        })
-    }
-
-    render() {
-        return <Container>
-            <Table>
-                <thead>
-                <tr>
-                    {this.props.header.map((v, i) => {
-                        const bgColor = this.props.selected[i]
-                            ? 'bg-primary'
-                            : this.state.hovered[i]
-                                ? 'bg-secondary'
-                                : '';
-                        return <th key={i}
-                                   className={[
-                                       'border',
-                                       'border-dim',
-                                       'align-middle',
-                                       'p-1',
-                                       bgColor
-                                   ].join(' ')}
-                                   style={{
-                                       cursor: 'pointer'
-                                   }}
-                                   onMouseEnter={() => this.hover(i, true)}
-                                   onMouseLeave={() => this.hover(i, false)}
-                                   onClick={e => {
-                                       e.preventDefault();
-                                       this.toggle(i);
-                                   }}>
-                            <div className="d-inline-flex h-100 align-items-center">
-                                <div className="d-flex flex-column">
-                                    {v}
-                                </div>
+    return <Container>
+        <Table>
+            <thead>
+            <tr>
+                {header.map((v, i) => {
+                    const bgColor = selected[i]
+                        ? 'bg-primary'
+                        : hovered === i
+                            ? 'bg-secondary'
+                            : '';
+                    return <th key={i}
+                               className={[
+                                   'border',
+                                   'border-dim',
+                                   'align-middle',
+                                   'p-1',
+                                   bgColor
+                               ].join(' ')}
+                               style={{
+                                   cursor: 'pointer'
+                               }}
+                               onMouseEnter={() => setHovered(i)}
+                               onMouseLeave={() => setHovered(-1)}
+                               onClick={e => {
+                                   e.preventDefault();
+                                   toggle(i);
+                               }}>
+                        <div className="d-inline-flex h-100 align-items-center">
+                            <div className="d-flex flex-column">
+                                {v}
                             </div>
-                        </th>;
-                    })}
-                </tr>
-                </thead>
-            </Table>
-        </Container>;
-    }
-}
+                        </div>
+                    </th>;
+                })}
+            </tr>
+            </thead>
+        </Table>
+    </Container>;
+};

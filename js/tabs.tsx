@@ -1,9 +1,10 @@
 import React, {useState} from "react";
 import {Col, Nav, NavItem, NavLink, Row, TabContent, TabPane} from "reactstrap";
-import {CsvModController} from "./mods/modifications";
-import {AvgTabProps, CsvTabProps, TabProps, TabType} from "./tabTypes";
+import {CsvModController} from "./mods/CsvModController";
+import {AvgTabProps, CsvTabProps, GraphTabProps, TabProps, TabType} from "./tabTypes";
 import {AdvancedTable} from "./AdvancedTable";
 import {noUnhandledCase} from "./utils";
+import {Graph} from "./Graph";
 
 
 export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
@@ -19,6 +20,10 @@ export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(prop
 
 export const AvgTab: React.FunctionComponent<AvgTabProps> = function AvgTab(props) {
     return <AdvancedTable data={props.data} tabId={props.id}/>;
+};
+
+export const GraphTab: React.FunctionComponent<GraphTabProps> = function GraphTab(props) {
+    return <Graph {...props}/>;
 };
 
 export type TabsProps = {
@@ -52,13 +57,15 @@ function tabsHeader(props: TabsProps) {
             case TabType.CSV:
                 return 'file-alt';
             case TabType.AVG:
-                return 'chart-bar';
+                return 'calculator';
+            case TabType.GRAPH:
+                return 'chart-line';
             default:
-                return noUnhandledCase(v.type);
+                return noUnhandledCase(v);
         }
     }
 
-    return <Nav tabs className="border-primary">
+    return <Nav tabs className="border-primary" id="tab-holder">
         {props.tabs.map(v =>
             <NavItem key={v.id}
                      onClick={e => {
@@ -82,10 +89,16 @@ function tabsHeader(props: TabsProps) {
 
 function tabsContainer(props: TabsProps) {
     function getElement(v: TabProps) {
-        if (v.type === TabType.CSV) {
-            return <CsvTab {...v}/>;
+        switch (v.type) {
+            case TabType.CSV:
+                return <CsvTab {...v}/>;
+            case TabType.AVG:
+                return <AvgTab {...v}/>;
+            case TabType.GRAPH:
+                return <GraphTab {...v}/>;
+            default:
+                return noUnhandledCase(v);
         }
-        return <AvgTab {...v}/>;
     }
 
     return <TabContent className="border border-primary rounded p-3 h-100">

@@ -13,7 +13,8 @@ const dest = './dist/client.js';
 const plugins = [];
 plugins.push(
     typescript({
-        typescript: require('typescript')
+        typescript: require('typescript'),
+        rollupCommonJSResolveHack: true
     }),
     replace({
         values: {
@@ -29,12 +30,15 @@ plugins.push(
         include: 'node_modules/**',
         namedExports: {
             'sprintf-js': ['sprintf'],
-            'react-is': ['isValidElementType', 'isContextConsumer']
+            'react-is': ['isValidElementType', 'isContextConsumer'],
+            'c3': ['generate'],
+            'react-resize-detector/node_modules/prop-types': [
+                'bool', 'number', 'string', 'shape', 'func', 'any', 'node'
+            ],
         }
     }),
     babel({
         exclude: 'node_modules/**', // only transpile our source code
-        sourceMaps: "inline"
     }),
     sourceMaps()
 );
@@ -59,7 +63,6 @@ const inputOptions = {
         "react",
         "react-dom",
         "reactstrap",
-        "cytoscape"
     ],
 };
 
@@ -70,10 +73,9 @@ const outputOptions = {
     sourcemap: true,
     globals: {
         "jquery": "jQuery",
-        "cytoscape": "cytoscape",
         "react": "React",
         "react-dom": "ReactDOM",
-        "reactstrap": "Reactstrap"
+        "reactstrap": "Reactstrap",
     },
 };
 

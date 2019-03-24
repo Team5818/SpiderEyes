@@ -1,9 +1,9 @@
 import {CsvData, CsvRow} from "../csv/CsvData";
-import {FormGroup, Label} from "reactstrap";
+import {Form, FormGroup, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "../reduxish/store";
 import {AvgTabProps} from "../tabTypes";
-import {HeaderSelection} from "../HeaderSelection";
+import {BoolArrayKey, HeaderSelection} from "../HeaderSelection";
 import {averageRows, CsvValueSealed, CsvValueType, genAverageRowArray, interpretValue} from "../csv/values";
 import {CsvModal} from "../csv/CsvModal";
 
@@ -64,13 +64,30 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
         addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));
     }
 
+    private updateSelected(
+        index: number,
+        value: boolean,
+        key: BoolArrayKey<AverageValuesState>
+    ) {
+        this.setState((prevState) => {
+            const newState = prevState[key].slice();
+            newState[index] = value;
+            return {
+                ...prevState,
+                [key]: newState
+            };
+        });
+    }
+
     render() {
         return <CsvModal title="Calculate Averages" submitLabel="Calculate" onSubmit={() => this.createTab()}>
-            <div>
+            <Form>
                 <FormGroup>
                     <Label className="w-100">
                         Select Average Key Column (column to match to collect values)
-                        <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedKeyHeaders}
+                        <HeaderSelection header={this.props.data.columnNames}
+                                         selected={this.state.selectedKeyHeaders}
+                                         setSelected={(i, v) => this.updateSelected(i, v, 'selectedKeyHeaders')}
                                          max={1}/>
                     </Label>
                 </FormGroup>
@@ -78,10 +95,11 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
                     <Label className="w-100">
                         Select Average Value Columns (columns to compute averages on)
                         <HeaderSelection header={this.props.data.columnNames}
-                                         selected={this.state.selectedValueHeaders}/>
+                                         selected={this.state.selectedValueHeaders}
+                                         setSelected={(i, v) => this.updateSelected(i, v, 'selectedValueHeaders')}/>
                     </Label>
                 </FormGroup>
-            </div>
+            </Form>
         </CsvModal>;
     }
 }

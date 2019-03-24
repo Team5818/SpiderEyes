@@ -1,0 +1,11 @@
+.c3 text {
+    fill: lightcyan;
+}
+
+.c3-axis path.domain, .c3-axis .tick > line {
+    stroke: lightcyan;
+}
+
+table.c3-tooltip {
+    color: var(--gray);
+}
