@@ -1,5 +1,6 @@
 import {sprintf} from "sprintf-js";
-import {cmpIgnoreCase, noUnhandledCase} from "../utils";
+import {cmpIgnoreCase, noUnhandledCase, oKeys} from "../utils";
+import {checkNotNull} from "../preconditions";
 
 export enum CsvValueType {
     STRING = "string",
@@ -7,6 +8,45 @@ export enum CsvValueType {
     FLOAT = "float",
     BOOLEAN = "boolean",
     AVERAGE = "average",
+}
+
+const SCORE_CAPABLE = new Set<CsvValueType>([
+    CsvValueType.INTEGER,
+    CsvValueType.FLOAT,
+    CsvValueType.BOOLEAN,
+    CsvValueType.AVERAGE
+]);
+
+const TYPE_TO_READABLE: Record<CsvValueType, string> = {
+    [CsvValueType.STRING]: 'String',
+    [CsvValueType.INTEGER]: 'Integer',
+    [CsvValueType.FLOAT]: 'Float',
+    [CsvValueType.BOOLEAN]: 'Boolean',
+    [CsvValueType.AVERAGE]: 'Average',
+};
+
+const READABLE_TO_TYPE: Record<string, CsvValueType> = oKeys(TYPE_TO_READABLE)
+    .map(k => {
+        return {[TYPE_TO_READABLE[k]]: k}
+    })
+    .reduce<Record<string, CsvValueType>>((prev, curr) => ({...prev, ...curr}), {});
+
+export namespace CsvValueType {
+    export function values(): CsvValueType[] {
+        return oKeys(TYPE_TO_READABLE);
+    }
+
+    export function isScoreCapable(type: CsvValueType): boolean {
+        return SCORE_CAPABLE.has(type);
+    }
+
+    export function readable(type: CsvValueType): string {
+        return checkNotNull(TYPE_TO_READABLE[type], `Unmapped type: ${type}`);
+    }
+
+    export function fromReadable(readable: string): CsvValueType | undefined {
+        return READABLE_TO_TYPE[readable];
+    }
 }
 
 export interface CsvValue<V, T extends CsvValueType> {

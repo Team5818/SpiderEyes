@@ -23,7 +23,8 @@ type CsvColumnUpdate = {
  */
 export class CsvColumn {
     readonly name: string;
-    readonly sortingHelper: CsvValueTypeSorting<any>;
+    readonly type: CsvValueType;
+    private sortingHelperCached: CsvValueTypeSorting<any> | undefined = undefined;
     /**
      * Size of the largest column, in characters (approx.).
      */
@@ -31,13 +32,21 @@ export class CsvColumn {
     readonly score: number;
 
     constructor(name: string,
-                sortingHelper: CsvValueTypeSorting<any>,
+                type: CsvValueType,
                 maxCharWidth: number,
                 score: number = 1) {
         this.name = name;
-        this.sortingHelper = sortingHelper;
+        this.type = type;
         this.maxCharWidth = maxCharWidth;
         this.score = score;
+    }
+
+    get sortingHelper(): CsvValueTypeSorting<any> {
+        let helper = this.sortingHelperCached;
+        if (typeof helper === "undefined") {
+            this.sortingHelperCached = helper = sortingHelper(this.type);
+        }
+        return helper;
     }
 
     private widthOfValue(value: CsvValueSealed): number {
@@ -52,12 +61,10 @@ export class CsvColumn {
 
     with(fieldUpdate: CsvColumnUpdate): CsvColumn {
         const name = fieldUpdate.name || this.name;
-        const helper = typeof fieldUpdate.type !== "undefined"
-            ? sortingHelper(fieldUpdate.type)
-            : this.sortingHelper;
+        const type = fieldUpdate.type || this.type;
         const maxCharWidth = this.computeMaxCharWidth(fieldUpdate.maxCharWidth);
         const score = fieldUpdate.score || this.score;
-        return new CsvColumn(name, helper, maxCharWidth, score);
+        return new CsvColumn(name, type, maxCharWidth, score);
     }
 
     private computeMaxCharWidth(maxCharWidth: undefined | number | { compute: CsvValueSealed[] }): number {
@@ -104,7 +111,7 @@ export class CsvData {
 
         const header: CsvColumn[] = arr[0].map(name => new CsvColumn(
             name,
-            sortingHelper(CsvValueType.STRING),
+            CsvValueType.STRING,
             MAX_COL_WIDTH
         ));
 
