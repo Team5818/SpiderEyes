@@ -10,6 +10,19 @@ export enum CsvValueType {
     AVERAGE = "average",
 }
 
+/**
+ * An average value, with standard deviation.
+ */
+export class Average {
+    average: number;
+    deviation: number;
+
+    constructor(average: number, deviation: number) {
+        this.average = average;
+        this.deviation = deviation;
+    }
+}
+
 const SCORE_CAPABLE = new Set<CsvValueType>([
     CsvValueType.INTEGER,
     CsvValueType.FLOAT,
@@ -23,6 +36,14 @@ const TYPE_TO_READABLE: Record<CsvValueType, string> = {
     [CsvValueType.FLOAT]: 'Float',
     [CsvValueType.BOOLEAN]: 'Boolean',
     [CsvValueType.AVERAGE]: 'Average',
+};
+
+const DEFAULT_VALUE: {[K in CsvValueType]: CsvValueToValueType[K]} = {
+    [CsvValueType.STRING]: "",
+    [CsvValueType.INTEGER]: 0,
+    [CsvValueType.FLOAT]: 0,
+    [CsvValueType.BOOLEAN]: false,
+    [CsvValueType.AVERAGE]: new Average(0, 0),
 };
 
 const READABLE_TO_TYPE: Record<string, CsvValueType> = oKeys(TYPE_TO_READABLE)
@@ -46,6 +67,12 @@ export namespace CsvValueType {
 
     export function fromReadable(readable: string): CsvValueType | undefined {
         return READABLE_TO_TYPE[readable];
+    }
+
+    type TypeDefaults = typeof DEFAULT_VALUE;
+
+    export function defaultValue<T extends keyof TypeDefaults>(type: T) : TypeDefaults[T] {
+        return DEFAULT_VALUE[type];
     }
 }
 
@@ -72,19 +99,6 @@ export interface CsvValueI extends CsvValue<CsvValueType.INTEGER> {
 }
 
 export interface CsvValueB extends CsvValue<CsvValueType.BOOLEAN> {
-}
-
-/**
- * An average value, with standard deviation.
- */
-export class Average {
-    average: number;
-    deviation: number;
-
-    constructor(average: number, deviation: number) {
-        this.average = average;
-        this.deviation = deviation;
-    }
 }
 
 export interface CsvValueAvg extends CsvValue<CsvValueType.AVERAGE> {

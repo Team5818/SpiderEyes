@@ -6,9 +6,10 @@ import {CsvModal} from "../csv/CsvModal";
 import {GraphConfiguration} from "../Graph";
 import {addAndSelectTab} from "../reduxish/store";
 import {GraphTabProps} from "../tabTypes";
-import {CsvValueSealed, CsvValueType, stringifyValue} from "../csv/values";
+import {Average, CsvValueSealed, CsvValueType, stringifyValue} from "../csv/values";
 import {noUnhandledCase} from "../utils";
 import {MultiSelect} from "../MultiSelect";
+import {SortDirection} from "../SortDirection";
 
 export interface MakeGraphProps {
     data: CsvData
@@ -44,8 +45,13 @@ function mapForGraph(v: CsvValueSealed) {
     }
 }
 
-function mix(axis: string, dataSet: string): string {
-    return `${axis}///${dataSet}`;
+type C3Value = string | number | boolean;
+
+function degrade(value: CsvValueSealed['value']): C3Value {
+    if (value instanceof Average) {
+        return value.average;
+    }
+    return value;
 }
 
 export const MakeGraph: React.FunctionComponent<MakeGraphProps> = ({data}) => {
@@ -111,7 +117,7 @@ export const MakeGraph: React.FunctionComponent<MakeGraphProps> = ({data}) => {
         })()
         : [], [dataSet.get, data.values]);
 
-    function createTab() {
+    async function createTab() {
         const dataSetIndex = selected(dataSet);
         const xAxisIndex = selected(xAxis);
         const yAxisIndex = selected(yAxis);
@@ -122,34 +128,41 @@ export const MakeGraph: React.FunctionComponent<MakeGraphProps> = ({data}) => {
         const xAxisName = data.columnNames[xAxisIndex];
         const yAxisName = data.columnNames[yAxisIndex];
 
-        // We have a separate X-Axis for each data set, since the X values for each
-        // probably won't align (e.g. with data_set=teams,x=matches)
+        // We spread the values of each graph along the missing X values
+        // Essentially we say they stay the same where no data is present.
 
-        const columnData = new Array<(string | number | boolean)[]>();
+        const sortedByX = await data.sort({key: xAxisIndex, direction: SortDirection.ASCENDING});
+        const xValues = Array.from(new Set(sortedByX.values.map(row => mapForGraph(row.data[xAxisIndex]))));
+        const columnData = new Array<C3Value[]>();
+        columnData.push(prefix(xAxisName, xValues));
         for (let key of dataSetKeys) {
-            const stringyKey = stringifyValue(key);
-            columnData.push(prefix(
-                mix(xAxisName, stringyKey),
-                data.values
-                    .filter(row => row.data[dataSetIndex].value === key.value)
-                    .map(row => mapForGraph(row.data[xAxisIndex]))
-            ));
-            columnData.push(prefix(
-                stringyKey,
-                data.values
-                    .filter(row => row.data[dataSetIndex].value === key.value)
-                    .map(row => mapForGraph(row.data[yAxisIndex]))
-            ));
+            const defaultValue = degrade(CsvValueType.defaultValue(data.header[yAxisIndex].type));
+            const col = new Array<C3Value>();
+            col.push(defaultValue);
+            let lastXValue: any = undefined;
+            for (let row of sortedByX.values.map(r => r.data)) {
+                if (row[dataSetIndex].value === key.value) {
+                    // matching row -- new value!
+                    col.push(degrade(row[yAxisIndex].value));
+                } else {
+                    const xValue = row[xAxisIndex].value;
+                    if (lastXValue === xValue) {
+                        continue;
+                    }
+                    lastXValue = xValue;
+                    // re-use last row
+                    col.push(col[col.length - 1]);
+                }
+            }
+            // pop the original default value.
+            col.splice(0, 1);
+            columnData.push(prefix(stringifyValue(key), col));
         }
 
         const graphConfig: GraphConfiguration = {
             chart: {
                 data: {
-                    xs: Array.from(dataSetKeys)
-                        .reduce((acc, next) => {
-                            const s = stringifyValue(next);
-                            return {...acc, [s]: mix(xAxisName, s)}
-                        }, {}),
+                    x: xAxisName,
                     columns: columnData
                 },
                 axis: {
@@ -171,7 +184,10 @@ export const MakeGraph: React.FunctionComponent<MakeGraphProps> = ({data}) => {
         addAndSelectTab(new GraphTabProps(graphConfig));
     }
 
-    return <CsvModal title="Make Graph" submitLabel="Graph It!" onSubmit={createTab}>
+    return <CsvModal title="Make Graph" submitLabel="Graph It!"
+                     onSubmit={() => createTab().catch(err => {
+                         console.error("Error creating graph tab", err);
+                     })}>
         <Form className="w-75 mx-auto">
             <FormGroup>
                 <Label className="w-100">
