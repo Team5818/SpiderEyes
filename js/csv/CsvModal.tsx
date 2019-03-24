@@ -13,11 +13,18 @@ export function closeModal() {
 export type CsvModalProps = {
     title: string,
     submitLabel: string,
-    onSubmit: React.MouseEventHandler<HTMLElement>
+    onSubmit: React.ReactEventHandler<HTMLElement>
 };
 
 export const CsvModal: React.FunctionComponent<CsvModalProps> = function CsvModal(props) {
-    return <Modal isOpen={true} toggle={closeModal} backdrop='static' size="huge">
+    function submitModal(e: React.SyntheticEvent<HTMLElement>) {
+        e.preventDefault();
+        closeModal();
+        props.onSubmit(e);
+    }
+
+    return <Modal isOpen={true} toggle={closeModal} backdrop='static' size="huge"
+                  onSubmit={submitModal}>
         <ModalHeader toggle={closeModal}>
             {props.title}
         </ModalHeader>
@@ -26,10 +33,7 @@ export const CsvModal: React.FunctionComponent<CsvModalProps> = function CsvModa
         </ModalBody>
         <ModalFooter>
             <Button color="secondary" onClick={closeModal}>Cancel</Button>
-            <Button color="primary" onClick={(e: React.MouseEvent<HTMLElement>) => {
-                closeModal();
-                props.onSubmit(e);
-            }}>{props.submitLabel}</Button>
+            <Button color="primary" onClick={submitModal}>{props.submitLabel}</Button>
         </ModalFooter>
     </Modal>;
 };

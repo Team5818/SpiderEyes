@@ -1,5 +1,6 @@
 import {sprintf} from "sprintf-js";
-import {cmpIgnoreCase, noUnhandledCase} from "../utils";
+import {cmpIgnoreCase, noUnhandledCase, oKeys} from "../utils";
+import {checkNotNull} from "../preconditions";
 
 export enum CsvValueType {
     STRING = "string",
@@ -9,21 +10,68 @@ export enum CsvValueType {
     AVERAGE = "average",
 }
 
-export interface CsvValue<V, T extends CsvValueType> {
-    value: V
+const SCORE_CAPABLE = new Set<CsvValueType>([
+    CsvValueType.INTEGER,
+    CsvValueType.FLOAT,
+    CsvValueType.BOOLEAN,
+    CsvValueType.AVERAGE
+]);
+
+const TYPE_TO_READABLE: Record<CsvValueType, string> = {
+    [CsvValueType.STRING]: 'String',
+    [CsvValueType.INTEGER]: 'Integer',
+    [CsvValueType.FLOAT]: 'Float',
+    [CsvValueType.BOOLEAN]: 'Boolean',
+    [CsvValueType.AVERAGE]: 'Average',
+};
+
+const READABLE_TO_TYPE: Record<string, CsvValueType> = oKeys(TYPE_TO_READABLE)
+    .map(k => {
+        return {[TYPE_TO_READABLE[k]]: k}
+    })
+    .reduce<Record<string, CsvValueType>>((prev, curr) => ({...prev, ...curr}), {});
+
+export namespace CsvValueType {
+    export function values(): CsvValueType[] {
+        return oKeys(TYPE_TO_READABLE);
+    }
+
+    export function isScoreCapable(type: CsvValueType): boolean {
+        return SCORE_CAPABLE.has(type);
+    }
+
+    export function readable(type: CsvValueType): string {
+        return checkNotNull(TYPE_TO_READABLE[type], `Unmapped type: ${type}`);
+    }
+
+    export function fromReadable(readable: string): CsvValueType | undefined {
+        return READABLE_TO_TYPE[readable];
+    }
+}
+
+interface CsvValueToValueType {
+    [CsvValueType.STRING]: string
+    [CsvValueType.FLOAT]: number
+    [CsvValueType.INTEGER]: number
+    [CsvValueType.BOOLEAN]: boolean
+    [CsvValueType.AVERAGE]: Average
+}
+
+export interface CsvValue<T extends CsvValueType> {
+    value: CsvValueToValueType[T]
     type: T
 }
 
-export interface CsvValueS extends CsvValue<string, CsvValueType.STRING> {
+export interface CsvValueS extends CsvValue<CsvValueType.STRING> {
 }
 
-export interface CsvValueF extends CsvValue<number, CsvValueType.FLOAT> {
+export interface CsvValueF extends CsvValue<CsvValueType.FLOAT> {
 }
 
-export interface CsvValueI extends CsvValue<number, CsvValueType.INTEGER> {
+export interface CsvValueI extends CsvValue<CsvValueType.INTEGER> {
 }
 
-export interface CsvValueB extends CsvValue<boolean, CsvValueType.BOOLEAN> {
+export interface CsvValueB extends CsvValue<CsvValueType.BOOLEAN> {
 }
 
 /**
@@ -39,7 +87,7 @@ export class Average {
     }
 }
 
-export interface CsvValueAvg extends CsvValue<Average, CsvValueType.AVERAGE> {
+export interface CsvValueAvg extends CsvValue<CsvValueType.AVERAGE> {
 }
 
 export type CsvValueSealed = CsvValueS | CsvValueF | CsvValueI | CsvValueB | CsvValueAvg;
@@ -126,20 +174,26 @@ export function reduceValues(previousValue: number, arrValue: CsvValueSealed, sc
     return previousValue + num;
 }
 
-function numerifyValue(v: CsvValueSealed): number {
+function numerifyValue(v: CsvValueSealed, round: boolean = false): number {
+    let value;
     switch (v.type) {
         case CsvValueType.FLOAT:
         case CsvValueType.INTEGER:
-            return v.value;
+            value = v.value;
+            break;
         case CsvValueType.BOOLEAN:
-            return +v.value;
+            value = +v.value;
+            break;
         case CsvValueType.STRING:
-            return 0;
+            value = 0;
+            break;
         case CsvValueType.AVERAGE:
-            return v.value.average;
+            value = v.value.average;
+            break;
         default:
             return noUnhandledCase(v);
     }
+    return round ? Math.round(value) : value;
 }
 
 // Implements Welford's standard variance algorithm.
@@ -182,4 +236,44 @@ export function genAverageRowArray(length: number): AvgInfo[] {
         arr[i] = new AvgInfo(0, 0, 0);
     }
     return arr;
+}
+
+type MigrationTable = {
+    [P in CsvValueType]: (value: CsvValueSealed) => CsvValueToValueType[P] | undefined
+};
+
+const MIGRATIONS: MigrationTable = {
+    [CsvValueType.STRING]: stringifyValue,
+    [CsvValueType.INTEGER]: (v: CsvValueSealed) => numerifyValue(v, true),
+    [CsvValueType.FLOAT]: numerifyValue,
+    [CsvValueType.BOOLEAN]: (v: CsvValueSealed) => {
+        switch (v.type) {
+            case CsvValueType.STRING:
+                return v.value.trim().length > 0;
+            case CsvValueType.INTEGER:
+            case CsvValueType.FLOAT:
+                return v.value != 0;
+            case CsvValueType.BOOLEAN:
+                return v.value;
+            case CsvValueType.AVERAGE:
+                return v.value.average != 0;
+            default:
+                return noUnhandledCase(v);
+        }
+    },
+    [CsvValueType.AVERAGE]: (v: CsvValueSealed) => {
+        // nothing can really be converted to an average...
+        return undefined;
+    },
+};
+
+export function migrateValues<T extends CsvValueType>(to: T, value: CsvValueSealed): CsvValueSealed {
+    const migrated: CsvValueToValueType[T] | undefined = MIGRATIONS[to](value);
+    if (typeof migrated === "undefined") {
+        return value;
+    }
+    return {
+        value: migrated,
+        type: to
+    } as CsvValueSealed;
 }

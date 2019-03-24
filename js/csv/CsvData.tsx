@@ -1,7 +1,7 @@
 import React from "react";
 
 import {parse as parseCsv} from "./parse";
-import {CsvValueSealed, CsvValueType, interpretValue, stringifyValue} from "./values";
+import {CsvValueSealed, CsvValueType, interpretValue, migrateValues, stringifyValue} from "./values";
 import {getSortMultiplier, SortDirection} from "../SortDirection";
 import {CsvValueTypeSorting, sortingHelper} from "./sorting";
 import {CharStream} from "../charStream";
@@ -23,7 +23,8 @@ type CsvColumnUpdate = {
  */
 export class CsvColumn {
     readonly name: string;
-    readonly sortingHelper: CsvValueTypeSorting<any>;
+    readonly type: CsvValueType;
+    private sortingHelperCached: CsvValueTypeSorting<any> | undefined = undefined;
     /**
      * Size of the largest column, in characters (approx.).
      */
@@ -31,13 +32,21 @@ export class CsvColumn {
     readonly score: number;
 
     constructor(name: string,
-                sortingHelper: CsvValueTypeSorting<any>,
+                type: CsvValueType,
                 maxCharWidth: number,
                 score: number = 1) {
         this.name = name;
-        this.sortingHelper = sortingHelper;
+        this.type = type;
         this.maxCharWidth = maxCharWidth;
         this.score = score;
+    }
+
+    get sortingHelper(): CsvValueTypeSorting<any> {
+        let helper = this.sortingHelperCached;
+        if (typeof helper === "undefined") {
+            this.sortingHelperCached = helper = sortingHelper(this.type);
+        }
+        return helper;
     }
 
     private widthOfValue(value: CsvValueSealed): number {
@@ -52,12 +61,10 @@ export class CsvColumn {
 
     with(fieldUpdate: CsvColumnUpdate): CsvColumn {
         const name = fieldUpdate.name || this.name;
-        const helper = typeof fieldUpdate.type !== "undefined"
-            ? sortingHelper(fieldUpdate.type)
-            : this.sortingHelper;
+        const type = fieldUpdate.type || this.type;
         const maxCharWidth = this.computeMaxCharWidth(fieldUpdate.maxCharWidth);
         const score = fieldUpdate.score || this.score;
-        return new CsvColumn(name, helper, maxCharWidth, score);
+        return new CsvColumn(name, type, maxCharWidth, score);
     }
 
     private computeMaxCharWidth(maxCharWidth: undefined | number | { compute: CsvValueSealed[] }): number {
@@ -104,7 +111,7 @@ export class CsvData {
 
         const header: CsvColumn[] = arr[0].map(name => new CsvColumn(
             name,
-            sortingHelper(CsvValueType.STRING),
+            CsvValueType.STRING,
             MAX_COL_WIDTH
         ));
 
@@ -159,9 +166,24 @@ export class CsvData {
     }
 
     withColumn(colIndex: number, col: CsvColumn) {
+        const newHeaders = this.header.map((x, i) => i === colIndex ? col : x);
+        const oldType = this.header[colIndex].type;
+        const newType = col.type;
+        let values = this.values;
+        if (oldType !== newType) {
+            values = values.map(row => {
+                const type = row.data[colIndex].type;
+                if (type === newType || type !== oldType) {
+                    return row;
+                }
+                const newData = row.data.slice();
+                newData[colIndex] = migrateValues(newType, newData[colIndex]);
+                return new CsvRow(newData, row.originalIndex);
+            });
+        }
         return new CsvData(
-            this.header.map((x, i) => i === colIndex ? col : x),
-            this.values,
+            newHeaders,
+            values,
             this.currentSort
         );
     }

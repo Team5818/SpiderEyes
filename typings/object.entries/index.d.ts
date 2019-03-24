@@ -9,5 +9,6 @@ interface EntriesShim {
 }
 
 declare interface Object {
-    entries<V>(object: { [key: string]: V }): Array<[string, V]>
+    entries<O, V>(object: Record<keyof O, V>): Array<[keyof O, V]>
+    entries<O>(object: O): Array<[keyof O, any]>
 }
