@@ -16,6 +16,11 @@
           href="css/fa-overrides.css"/>
     <link rel="stylesheet"
           href="css/tablesort.css"/>
+    <!-- C3-specific CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.6.13/c3.min.css"
+          integrity="sha256-dXVyk6v2KygjX+OEHMrEQlRtxFPnXBdFKpuNo/c033Q=" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="css/c3-overrides.css"/>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Bungee" rel="stylesheet">
@@ -49,17 +54,12 @@
             integrity="sha384-hIlwFFHymUoeNCHc7bR5cfiPLijamFsTKV9+xTIJHGbWhF7jkNhWV9leAeMeAhez"
             crossorigin="anonymous"></script>
 
-    <!-- Cytoscape -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.5.0/cytoscape.min.js"
-            integrity="sha384-xgcxUU2DHAnv2v2BXPezIxVyyDu2X5lQ2c3W2RrdDPdaEONQqn0JJPZRitd6XmXu"
-            crossorigin="anonymous"></script>
-
     <!-- Our client! -->
     <script defer src="client.js"></script>
 </head>
 <body class="w-100 h-100 text-center">
-<div class="w-100 h-100 box-shadow-inset" style="overflow-y: scroll">
-    <div class="w-100">
+<div class="w-100 h-100 box-shadow-inset d-flex flex-column" style="overflow-y: scroll">
+    <div class="w-100 flex-grow-0">
         <nav class="navbar navbar-expand-md navbar-dark bg-transparent border-top-0 border-left-0 border-right-0 pb-3 mb-3">
             <a class="navbar-brand" href="#">
                 <img src="./img/logo.png" width="48" height="48"
@@ -82,9 +82,9 @@
             </div>
         </nav>
     </div>
-    <div id="container" class="p-3">
-        <div class="position-relative">
-            <div id="mount" style="position:absolute; left: 0; top: 0; min-width: 100%">
+    <div id="container" class="p-3 flex-grow-1">
+        <div class="position-relative h-100">
+            <div id="mount" style="position:absolute; left: 0; top: 0; min-width: 100%;" class="h-100">
             </div>
         </div>
         <div id="mountModal">

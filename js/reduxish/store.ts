@@ -1,6 +1,6 @@
 import {createStore, Reducer} from "redux";
 import {afsFactory} from "./slice";
-import {TabProps} from "../tabTypes";
+import {TabProps, TabType} from "../tabTypes";
 import {CsvData} from "../csv/CsvData";
 
 
@@ -37,7 +37,7 @@ export const Actions = {
             return new Map();
         }
         const tab = state.get(payload.id);
-        if (typeof tab === "undefined") {
+        if (typeof tab === "undefined" || tab.type === TabType.GRAPH) {
             return state;
         }
         const copy = new Map(state);

@@ -1,9 +1,9 @@
 import {CsvData, CsvRow} from "../csv/CsvData";
-import {FormGroup, Input, Label} from "reactstrap";
+import {Form, FormGroup, Input, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "../reduxish/store";
 import {CsvTabProps} from "../tabTypes";
-import {HeaderSelection} from "../HeaderSelection";
+import {BoolArrayKey, HeaderSelection} from "../HeaderSelection";
 import {interpretValue, reduceValues} from "../csv/values";
 import {CsvModal} from "../csv/CsvModal";
 
@@ -59,14 +59,31 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
         addAndSelectTab(new CsvTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));
     }
 
+    private updateSelected(
+        index: number,
+        value: boolean,
+        key: BoolArrayKey<SynthesizeColumnState>
+    ) {
+        this.setState((prevState) => {
+            const newState = prevState[key].slice();
+            newState[index] = value;
+            return {
+                ...prevState,
+                [key]: newState
+            };
+        });
+    }
+
     render() {
         return <CsvModal title="Synthesize Column" submitLabel="Synthesize" onSubmit={() => this.createTab()}>
-            <div>
+            <Form>
                 <FormGroup>
                     <Label className="w-100">
                         Select Columns
                     </Label>
-                    <HeaderSelection header={this.props.data.columnNames} selected={this.state.selectedHeaders}/>
+                    <HeaderSelection header={this.props.data.columnNames}
+                                     selected={this.state.selectedHeaders}
+                                     setSelected={(i, v) => this.updateSelected(i, v, 'selectedHeaders')}/>
                 </FormGroup>
                 <FormGroup>
                     <Input className="w-25 m-auto"
@@ -76,7 +93,7 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
                            value={this.state.name}
                            onChange={e => this.updateName(e.currentTarget.value)}/>
                 </FormGroup>
-            </div>
+            </Form>
         </CsvModal>;
     }
 }

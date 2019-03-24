@@ -1,12 +1,13 @@
 import {CsvData} from "./csv/CsvData";
+import {GraphConfiguration} from "./Graph";
 
 export enum TabType {
-    CSV, AVG
+    CSV, AVG, GRAPH
 }
 
 export class TabBase {
-    id: string;
-    type: TabType | undefined = undefined;
+    readonly id: string;
+    readonly type: TabType | undefined = undefined;
 
     constructor() {
         this.id = nextId();
@@ -18,8 +19,8 @@ const nextId = Object.assign(function () {
 }, {counter: 0});
 
 export class CsvTabProps extends TabBase {
-    data: CsvData;
-    type = TabType.CSV;
+    readonly data: CsvData;
+    readonly type = TabType.CSV;
 
     constructor(data: CsvData) {
         super();
@@ -28,8 +29,8 @@ export class CsvTabProps extends TabBase {
 }
 
 export class AvgTabProps extends TabBase {
-    data: CsvData;
-    type = TabType.AVG;
+    readonly data: CsvData;
+    readonly type = TabType.AVG;
 
     constructor(data: CsvData) {
         super();
@@ -37,4 +38,14 @@ export class AvgTabProps extends TabBase {
     }
 }
 
-export type TabProps = CsvTabProps | AvgTabProps;
+export class GraphTabProps extends TabBase {
+    readonly graphConfig: GraphConfiguration;
+    readonly type = TabType.GRAPH;
+
+    constructor(graphConfig: GraphConfiguration) {
+        super();
+        this.graphConfig = graphConfig;
+    }
+}
+
+export type TabProps = CsvTabProps | AvgTabProps | GraphTabProps;
