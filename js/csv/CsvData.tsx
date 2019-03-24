@@ -1,7 +1,7 @@
 import React from "react";
 
 import {parse as parseCsv} from "./parse";
-import {CsvValueSealed, CsvValueType, interpretValue, stringifyValue} from "./values";
+import {CsvValueSealed, CsvValueType, interpretValue, migrateValues, stringifyValue} from "./values";
 import {getSortMultiplier, SortDirection} from "../SortDirection";
 import {CsvValueTypeSorting, sortingHelper} from "./sorting";
 import {CharStream} from "../charStream";
@@ -166,9 +166,24 @@ export class CsvData {
     }
 
     withColumn(colIndex: number, col: CsvColumn) {
+        const newHeaders = this.header.map((x, i) => i === colIndex ? col : x);
+        const oldType = this.header[colIndex].type;
+        const newType = col.type;
+        let values = this.values;
+        if (oldType !== newType) {
+            values = values.map(row => {
+                const type = row.data[colIndex].type;
+                if (type === newType || type !== oldType) {
+                    return row;
+                }
+                const newData = row.data.slice();
+                newData[colIndex] = migrateValues(newType, newData[colIndex]);
+                return new CsvRow(newData, row.originalIndex);
+            });
+        }
         return new CsvData(
-            this.header.map((x, i) => i === colIndex ? col : x),
-            this.values,
+            newHeaders,
+            values,
             this.currentSort
         );
     }

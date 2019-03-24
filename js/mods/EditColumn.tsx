@@ -61,7 +61,7 @@ export const EditColumn: React.FunctionComponent<EditColumnProps> = ({column, on
                         currentCol.current = currentCol.current.with({name: name});
                     }}
                 />
-                {/*<EditColInput
+                <EditColInput
                     readableName="Type"
                     idName="type"
                     type="select"
@@ -79,7 +79,6 @@ export const EditColumn: React.FunctionComponent<EditColumnProps> = ({column, on
                         <option key={v} value={CsvValueType.readable(v)}>{CsvValueType.readable(v)}</option>
                     )}
                 </EditColInput>
-                */}
                 {CsvValueType.isScoreCapable(currentCol.current.type) &&
                 <EditColInput
                     readableName="Score"
