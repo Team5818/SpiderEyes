@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 set -ex
-rm -r ./.rpt2_cache/
+[[ -e ./.rpt2_cache/ ]] && rm -r ./.rpt2_cache/
 node bundle.js
