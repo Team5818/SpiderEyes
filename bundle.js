@@ -7,10 +7,14 @@ const terser = require('rollup-plugin-terser').terser;
 const replace = require('rollup-plugin-replace');
 const sourceMaps = require('rollup-plugin-sourcemaps');
 const process = require('process');
+const execSync = require('child_process').execSync;
 const packageJson = require('./package.json');
 
 const dest = './dist/client.js';
 const plugins = [];
+const devSuffix = process.env['ENVIRONMENT'] === 'DEV'
+    ? '-' + execSync('git rev-parse --short HEAD', {'encoding': 'utf8'}).trim()
+    : '';
 plugins.push(
     typescript({
         typescript: require('typescript'),
@@ -19,7 +23,7 @@ plugins.push(
     replace({
         values: {
             'process.env.NODE_ENV': JSON.stringify(process.env['ENVIRONMENT'] || 'production'),
-            '__VERSION__': packageJson.version
+            '__VERSION__': packageJson.version + devSuffix
         }
     }),
     nodeResolve({
