@@ -13,13 +13,21 @@ export enum CsvValueType {
 /**
  * An average value, with standard deviation.
  */
-export class Average {
-    average: number;
-    deviation: number;
+export interface Average {
+    readonly average: number
+    readonly deviation: number
+}
 
-    constructor(average: number, deviation: number) {
-        this.average = average;
-        this.deviation = deviation;
+export namespace Average {
+    export function of(average: number, deviation: number) : Average {
+        return {
+            average: average,
+            deviation: deviation
+        };
+    }
+    export function isInstance(item: any) : item is Average {
+        const avg = item as Average;
+        return typeof avg.average !== "undefined" && typeof avg.deviation !== "undefined";
     }
 }
 
@@ -43,7 +51,7 @@ const DEFAULT_VALUE: {[K in CsvValueType]: CsvValueToValueType[K]} = {
     [CsvValueType.INTEGER]: 0,
     [CsvValueType.FLOAT]: 0,
     [CsvValueType.BOOLEAN]: false,
-    [CsvValueType.AVERAGE]: new Average(0, 0),
+    [CsvValueType.AVERAGE]: Average.of(0, 0),
 };
 
 const READABLE_TO_TYPE: Record<string, CsvValueType> = oKeys(TYPE_TO_READABLE)
@@ -76,6 +84,7 @@ export namespace CsvValueType {
     }
 }
 
+// Note: all types must be representable as JSON, since persistence manipulates them directly
 export interface CsvValueToValueType {
     [CsvValueType.STRING]: string
     [CsvValueType.FLOAT]: number
@@ -224,7 +233,7 @@ export class AvgInfo {
 
     get value(): CsvValueAvg {
         return {
-            value: new Average(this.mean, Math.sqrt(this.m2 / (this.count - 1))),
+            value: Average.of(this.mean, Math.sqrt(this.m2 / (this.count - 1))),
             type: CsvValueType.AVERAGE
         };
     }

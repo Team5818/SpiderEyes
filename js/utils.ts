@@ -18,3 +18,17 @@ export function noUnhandledCase(x: never): never {
     throw new Error("Unhandled case: " + x);
 }
 
+function nextAnimFrame(): Promise<void> {
+    return new Promise(resolve => {
+        requestAnimationFrame(() => resolve());
+    });
+}
+
+/**
+ * Return a promise that resolves after the next render.
+ */
+export function afterNextRender(): Promise<void> {
+    // Pass a frame.
+    return nextAnimFrame().then(() => nextAnimFrame());
+}
+

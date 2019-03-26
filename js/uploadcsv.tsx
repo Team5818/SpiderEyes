@@ -1,6 +1,6 @@
 import React from "react";
 import {isDefined} from "./preconditions";
-import {Actions, addAndSelectTab, InternalState, ISTATE} from "./reduxish/store";
+import {Actions, addAndSelectTab, ISTATE} from "./reduxish/store";
 import {CsvData} from "./csv/CsvData";
 import {CsvTabProps} from "./tabTypes";
 import {FileStream} from "./fileStream";
@@ -8,6 +8,7 @@ import {CharStream, trackProgress} from "./charStream";
 import {closeModal, injectModal} from "./csv/CsvModal";
 import {connect, Provider} from "react-redux";
 import {LoadingModal} from "./LoadingModal";
+import {InternalState} from "./reduxish/InternalState";
 
 const FileLoadingModal = connect(
     (state: InternalState) => ({

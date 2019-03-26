@@ -89,14 +89,9 @@ export class CsvColumn {
     }
 }
 
-export class CsvRow {
+export interface CsvRow {
     readonly data: CsvValueSealed[];
     readonly originalIndex: number;
-
-    constructor(data: CsvValueSealed[], originalIndex: number) {
-        this.data = data;
-        this.originalIndex = originalIndex;
-    }
 }
 
 export interface Sort {
@@ -146,7 +141,10 @@ export class CsvData {
             }
         }
 
-        return new CsvData(header, values.map((v, i) => new CsvRow(v, i)));
+        return new CsvData(header, values.map((v, i) => ({
+            data: v,
+            originalIndex: i
+        })));
     }
 
     header: CsvColumn[];
@@ -178,7 +176,7 @@ export class CsvData {
                 }
                 const newData = row.data.slice();
                 newData[colIndex] = migrateValues(newType, newData[colIndex]);
-                return new CsvRow(newData, row.originalIndex);
+                return {...row, data: newData};
             });
         }
         return new CsvData(
