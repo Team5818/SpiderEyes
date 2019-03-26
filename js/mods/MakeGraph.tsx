@@ -48,7 +48,7 @@ function mapForGraph(v: CsvValueSealed) {
 type C3Value = string | number | boolean;
 
 function degrade(value: CsvValueSealed['value']): C3Value {
-    if (value instanceof Average) {
+    if (Average.isInstance(value)) {
         return value.average;
     }
     return value;

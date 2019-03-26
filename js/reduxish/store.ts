@@ -1,20 +1,9 @@
-import {createStore, Reducer} from "redux";
+import {Action, createStore, Reducer} from "redux";
 import {afsFactory} from "./slice";
 import {TabProps, TabType} from "../tabTypes";
 import {CsvData} from "../csv/CsvData";
-
-
-export interface InternalState {
-    tabs: Map<string, TabProps>
-    selectedTab: string
-    loadingProgress: number | undefined
-}
-
-const defaultState: InternalState = {
-    tabs: new Map(),
-    selectedTab: '',
-    loadingProgress: undefined,
-};
+import {defaultState, InternalState} from "./InternalState";
+import {storeState} from "../persist/persistor";
 
 const slicer = afsFactory<InternalState>();
 
@@ -63,6 +52,17 @@ export const Actions = {
     }),
 };
 
+export interface SetStateAction extends Action<'setState'> {
+    payload: InternalState
+}
+
+export function setState(state: InternalState): SetStateAction {
+    return {
+        type: 'setState',
+        payload: state
+    };
+}
+
 export function addAndSelectTab(payload: TabProps) {
     ISTATE.dispatch(Actions.addTab(payload));
     ISTATE.dispatch(Actions.selectTab(payload.id));
@@ -92,14 +92,24 @@ function updateSelectedTab(prevState: InternalState | undefined, newState: Inter
     }
 }
 
-const fullReducer: Reducer<InternalState> = (prevState, action) => {
-    let newState = mainReducer(prevState, action);
-
-    // correct "errors" -- like selecting a tab that doesn't exist.
+function correctErrors(newState: InternalState, prevState: InternalState | undefined) {
+// correct "errors" -- like selecting a tab that doesn't exist.
     // maybe it's empty -- then this is fine, we'll fix it later!
     if (newState.tabs.size > 0 && !newState.tabs.has(newState.selectedTab)) {
         updateSelectedTab(prevState, newState);
     }
+}
+
+const fullReducer: Reducer<InternalState> = (prevState, action) => {
+    if (action.type === 'setState') {
+        const newState = (action as SetStateAction).payload;
+        correctErrors(newState, prevState);
+        return newState;
+    }
+    let newState = mainReducer(prevState, action);
+
+    correctErrors(newState, prevState);
+
     return newState;
 };
 

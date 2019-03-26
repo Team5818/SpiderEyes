@@ -1,4 +1,4 @@
-import {CsvData, CsvRow} from "../csv/CsvData";
+import {CsvData} from "../csv/CsvData";
 import {Form, FormGroup, Input, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "../reduxish/store";
@@ -56,7 +56,10 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
             return newRow;
         });
 
-        addAndSelectTab(new CsvTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));
+        addAndSelectTab(new CsvTabProps(new CsvData(newHeaders, newValues.map((v, i) => ({
+            data: v,
+            originalIndex: i
+        })))));
     }
 
     private updateSelected(

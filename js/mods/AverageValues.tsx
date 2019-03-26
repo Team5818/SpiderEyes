@@ -1,4 +1,4 @@
-import {CsvData, CsvRow} from "../csv/CsvData";
+import {CsvData} from "../csv/CsvData";
 import {Form, FormGroup, Label} from "reactstrap";
 import React from "react";
 import {addAndSelectTab} from "../reduxish/store";
@@ -61,7 +61,10 @@ export class AverageValues extends React.Component<AverageValuesProps, AverageVa
                 });
         }
 
-        addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues.map((v, i) => new CsvRow(v, i)))));
+        addAndSelectTab(new AvgTabProps(new CsvData(newHeaders, newValues.map((v, i) => ({
+            data: v,
+            originalIndex: i
+        })))));
     }
 
     private updateSelected(

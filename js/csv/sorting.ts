@@ -78,9 +78,7 @@ const sortingHelpers: SortingHelperMap = {
         compare(a: Average, b: Average): number {
             return compareNumber(a.average, b.average);
         },
-        isGoodValue(v: any): v is Average {
-            return v instanceof Average;
-        }
+        isGoodValue: Average.isInstance
     },
 };
 
