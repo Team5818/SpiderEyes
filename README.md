@@ -45,13 +45,8 @@ enter. This is useful for measuring game features in points, rather than
 amounts.
 
 ## Building
-This is fairly simple to build. Simply run `npm install` to grab the required
-dependencies, then `node bundle.js` to build everything. You can then serve
+This is fairly simple to build. Simply run `pnpm install` to grab the required
+dependencies, then `pnpm run build` to build everything. You can then serve
 the `dist` folder, and the application is ready!
 
-If you want to develop, the `run.sh` script is very useful. It will start a
-"live server" that automatically reloads on changed. It also watches for
-code changes, so you can code + run quickly. However, it only works at
-full capacity if you specify `DEV` for the `ENVIRONMENT` environment variable,
-e.g. `$ ENVIRONMENT=DEV ./run.sh`.
-
+If you want to develop, use `pnpm run dev`, which will start a server for you.

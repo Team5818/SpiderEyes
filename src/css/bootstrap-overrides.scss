@@ -1,0 +1,114 @@
+@import "bootstrap-init";
+
+@import "~bootstrap/scss/bootstrap";
+
+@import "~bootswatch/dist/cyborg/bootswatch";
+
+html,
+body {
+    background-color: #333;
+    --header-plain: #0a445a;
+    --header-hover: #1186a9;
+    --header-select: #2568ca;
+    --btn-header-plain: #7990A0;
+}
+
+body {
+    color: #fff;
+}
+
+.box-shadow-inset {
+    box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+}
+
+#mountUpload {
+    box-shadow: 0 0 2rem rgba(0, 0, 0, 1);
+}
+
+table.floatThead-table {
+    border-top: none;
+    border-bottom: none;
+}
+
+.at-header-plain {
+    background-color: var(--header-plain);
+}
+
+.at-header-hovered {
+    background-color: var(--header-hover);
+}
+
+.at-header-selected {
+    background-color: var(--header-select);
+}
+
+.bg-btn-header {
+    background-color: var(--btn-header-plain);
+}
+
+.btn-header {
+    position: relative;
+    z-index: 0;
+    background-color: var(--btn-header-plain);
+}
+
+.btn-header:hover {
+    background-color: #4E6172;
+}
+
+.btn-header:focus {
+    box-shadow: 0 0 0 0.2rem #0A445A;
+    z-index: 10;
+}
+
+.border-dim {
+    border-color: #555555 !important;
+}
+
+.sort-arrow-plain {
+    filter: brightness(0%);
+}
+
+.sort-arrow-hovered {
+    filter: brightness(70%);
+}
+
+.sort-arrow-selected {
+    filter: brightness(100%);
+}
+
+.sort-arrow-disabled {
+    visibility: hidden;
+}
+
+.modal-huge {
+    max-width: 80vw;
+}
+
+/* Smoother progress bars with frequent updates. */
+.progress-bar {
+    -webkit-transition: width 0s steps(1000);
+    -moz-transition: width 0s steps(1000);
+    -ms-transition: width 0s steps(1000);
+    -o-transition: width 0s steps(1000);
+    transition: width 0s steps(1000);
+}
+
+.bg-danger-like {
+    background: #540804;
+}
+
+.flex-grow-at-string {
+    flex-grow: 3;
+}
+
+.table thead th {
+    vertical-align: inherit;
+}
+.table-bordered,.table-bordered thead th,.table-bordered th,.table-bordered td {
+    border-color: var(--gray);
+}
+
+.btn-square {
+    border-radius: 0;
+}
