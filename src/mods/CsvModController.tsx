@@ -25,12 +25,12 @@ function makeGraph(data: CsvData): void {
 export const CsvModController: React.FunctionComponent<CsvModControllerProps> =
     function CsvModController(props: CsvModControllerProps) {
         return <Nav className="mb-3 justify-content-center">
-            <NavItem className="mr-3">
+            <NavItem className="me-3">
                 <Button color="primary" className="bungee" onClick={(): void => synthesizeColumn(props.data)}>
                     Synthesize Column
                 </Button>
             </NavItem>
-            <NavItem className="mr-3">
+            <NavItem className="me-3">
                 <Button color="primary" className="bungee" onClick={(): void => calculateAverages(props.data)}>
                     Calculate Averages
                 </Button>

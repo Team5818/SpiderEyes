@@ -7,6 +7,8 @@ import {CsvData, CsvRow} from "./csv/CsvData";
 import {injectModal} from "./csv/CsvModal";
 import {EditColumn} from "./mods/EditColumn";
 import {Actions, ISTATE} from "./reduxish/store";
+import {faTimes} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 type ATCloseButtonProps = {
     rowDrop: () => void
@@ -26,7 +28,7 @@ const ATCloseButton: React.FunctionComponent<ATCloseButtonProps> = ({rowDrop}) =
         onMouseEnter={(): void => setHover(true)}
         onMouseLeave={(): void => setHover(false)}>
         <div className={hover ? 'text-danger' : 'text-dark'}>
-            <i className="fas fa-times"/>
+            <FontAwesomeIcon icon={faTimes}/>
         </div>
     </div>;
 };
@@ -93,24 +95,24 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
     override render(): ReactNode {
         const values = this.props.data.values;
 
-        return <Table size="sm" bordered className="border-dim w-auto mx-auto">
+        return <Table size="sm" bordered striped className="border-dim w-auto mx-auto">
             <thead>
             <tr>
                 {this.props.data.columnNames.map((_, i) =>
                     <th className="p-0" key={`edit-header-${i}`}>
                         <Button size="sm"
                                 color="secondary"
-                                className="btn-square w-100 btn-header"
+                                className="btn-square w-100 btn-header border-0"
                                 onClick={(): void => this.editColumn(i)}>
                             Edit
                         </Button>
                     </th>
                 )}
-                <th className="bg-btn-header"/>
+                <th style={{background: "var(--btn-header-plain)"}}/>
             </tr>
-            <tr>
+            <tr className="align-middle">
                 {this.props.data.columnNames.map((v, i) => this.tableHeader(i, v))}
-                {this.tableHeader(undefined, <i className="fas fa-times"/>)}
+                {this.tableHeader(undefined, <FontAwesomeIcon icon={faTimes}/>)}
             </tr>
             </thead>
             <tbody>
@@ -137,7 +139,6 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
 
     private tableHeader(i: number | undefined, v: React.ReactChild): ReactNode {
         const headerSort = this.getHeaderSort(i);
-        const classNames: string[] = ['at-header-plain', 'py-1', 'px-2'];
         const thProps: Pick<HTMLProps<HTMLTableHeaderCellElement>, 'className' | 'key' | 'style'> = {};
         if (typeof i !== "undefined") {
             thProps.key = `${i}-header`;
@@ -150,9 +151,9 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
                 width: 1
             };
         }
-        thProps.className = classNames.join(' ');
+        thProps.className = 'at-header-plain py-1 px-2';
         const innerElement = (
-            <span className="align-middle" style={{cursor: 'default'}}>
+            <span style={{cursor: 'default'}}>
                 {v}
             </span>
         );
@@ -169,7 +170,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
     }
 
     private getHeaderSort(i: number | undefined): SortDirection | undefined {
-        const currentSort = this.props.data.currentSort || {key: 0, direction: SortDirection.ASCENDING};
+        const currentSort = this.props.data.currentSort || {key: -1, direction: SortDirection.ASCENDING};
         return currentSort.key === i ? currentSort.direction : undefined;
     }
 }

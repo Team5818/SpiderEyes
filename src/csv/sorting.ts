@@ -1,12 +1,11 @@
-import {Average, averageIsInstance, CsvValueToValueType, CsvValueType} from "./values";
-import {Primitive} from "c3";
+import {Average, averageIsInstance, CsvValueSealed, CsvValueToValueType, CsvValueType} from "./values";
 
 export interface CsvValueTypeSorting<T extends CsvValueType> {
     readonly type: T
 
     compare(a: CsvValueToValueType[T], b: CsvValueToValueType[T]): number
 
-    isGoodValue(v: Primitive | Average): v is CsvValueToValueType[T]
+    isGoodValue(v: CsvValueSealed['value']): v is CsvValueToValueType[T]
 }
 
 function sortBadToBottom<T>(a: T, b: T, isGood: (param: T) => boolean): number | undefined {
@@ -47,21 +46,21 @@ const sortingHelpers: SortingHelperMap = {
         compare(a: string, b: string): number {
             return a.localeCompare(b);
         },
-        isGoodValue(v: Primitive | Average): v is string {
+        isGoodValue(v: CsvValueSealed['value']): v is string {
             return typeof v === "string" && v.trim().length > 0;
         }
     },
     [CsvValueType.FLOAT]: {
         type: CsvValueType.FLOAT,
         compare: compareNumber,
-        isGoodValue(v: Primitive | Average): v is number {
+        isGoodValue(v: CsvValueSealed['value']): v is number {
             return typeof v === "number" && !Number.isNaN(v);
         }
     },
     [CsvValueType.INTEGER]: {
         type: CsvValueType.INTEGER,
         compare: compareNumber,
-        isGoodValue(v: Primitive | Average): v is number {
+        isGoodValue(v: CsvValueSealed['value']): v is number {
             return typeof v === "number" && Number.isInteger(v);
         }
     },
@@ -70,7 +69,7 @@ const sortingHelpers: SortingHelperMap = {
         compare(a: boolean, b: boolean): number {
             return compareNumber(+a, +b);
         },
-        isGoodValue(v: Primitive | Average): v is boolean {
+        isGoodValue(v: CsvValueSealed['value']): v is boolean {
             return typeof v === "boolean";
         }
     },

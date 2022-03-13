@@ -6,8 +6,7 @@ import {CsvModal} from "../csv/CsvModal";
 import {GraphConfiguration} from "../Graph";
 import {addAndSelectTab} from "../reduxish/store";
 import {GraphTabProps} from "../tabTypes";
-import {Average, averageIsInstance, CsvValueSealed, CsvValueType, CsvValueTypes, stringifyValue} from "../csv/values";
-import {noUnhandledCase} from "../utils";
+import {Average, averageIsInstance, CsvValueSealed, stringifyValue} from "../csv/values";
 import {MultiSelect} from "../MultiSelect";
 import {SortDirection} from "../SortDirection";
 
@@ -27,25 +26,21 @@ function toHeaderSelect(values: [boolean[], Dispatch<SetStateAction<boolean[]>>]
     };
 }
 
-function mapForGraph(v: CsvValueSealed): C3Value {
-    switch (v.type) {
-        case CsvValueType.STRING:
-        case CsvValueType.INTEGER:
-        case CsvValueType.FLOAT:
-        case CsvValueType.BOOLEAN:
-            return v.value;
-        case CsvValueType.AVERAGE:
-            return v.value.average;
-        default:
-            return noUnhandledCase(v);
-    }
-}
+type CsvValueNoAverage = Exclude<CsvValueSealed['value'], Average>;
 
-type C3Value = string | number | boolean;
-
-function degrade(value: CsvValueSealed['value']): C3Value {
+function degrade(value: CsvValueSealed['value']): CsvValueNoAverage {
     if (averageIsInstance(value)) {
         return value.average;
+    }
+    return value;
+}
+
+function degradeToTypeKey(value: CsvValueSealed['value']): string | number {
+    if (averageIsInstance(value)) {
+        return value.average;
+    }
+    if (typeof value === 'boolean') {
+        return `${value}`;
     }
     return value;
 }
@@ -121,61 +116,33 @@ export const MakeGraph: React.FunctionComponent<MakeGraphProps> = ({data}) => {
             return;
         }
 
-        const xAxisName = data.columnNames[xAxisIndex]!;
-        const yAxisName = data.columnNames[yAxisIndex]!;
-
-        // We spread the values of each graph along the missing X values
-        // Essentially we say they stay the same where no data is present.
+        const columnNames = data.columnNames;
+        const xAxisName = columnNames[xAxisIndex]!;
+        const yAxisName = columnNames[yAxisIndex]!;
 
         const sortedByX = await data.sort({key: xAxisIndex, direction: SortDirection.ASCENDING});
-        const xValues = Array.from(new Set(sortedByX.values.map(row => mapForGraph(row.data[xAxisIndex]!))));
-        const columnData = new Array<[string, ...C3Value[]]>();
-        columnData.push([xAxisName, ...xValues]);
-        for (const key of dataSetKeys) {
-            const defaultValue = degrade(CsvValueTypes.defaultValue(data.header[yAxisIndex]!.type));
-            const col = new Array<C3Value>();
-            col.push(defaultValue);
-            let lastXValue: C3Value | Average | undefined = undefined;
-            for (const row of sortedByX.values.map(r => r.data)) {
-                if (row[dataSetIndex]!.value === key.value) {
-                    // matching row -- new value!
-                    col.push(degrade(row[yAxisIndex]!.value));
-                } else {
-                    const xValue = row[xAxisIndex]!.value;
-                    if (lastXValue === xValue) {
-                        continue;
-                    }
-                    lastXValue = xValue;
-                    // re-use last row
-                    col.push(col[col.length - 1]!);
-                }
+        // Contains our x axis key, and the y value for each line
+        const graphData: Record<string | number, CsvValueNoAverage>[] = [];
+        let lastXAxisValue: CsvValueNoAverage | undefined = undefined;
+        for (const row of sortedByX.values) {
+            const degradedXAxisValue = degrade(row.data[xAxisIndex]!.value);
+            let xBucket: Record<string | number, CsvValueNoAverage>;
+            if (degradedXAxisValue === lastXAxisValue) {
+                xBucket = graphData[graphData.length - 1]!;
+            } else {
+                xBucket = {[xAxisName]: degradedXAxisValue};
+                graphData.push(xBucket);
+                lastXAxisValue = degradedXAxisValue;
             }
-            // pop the original default value.
-            col.splice(0, 1);
-            columnData.push([stringifyValue(key), ...col]);
+            xBucket[degradeToTypeKey(row.data[dataSetIndex]!.value)] = degrade(row.data[yAxisIndex]!.value);
         }
 
         const graphConfig: GraphConfiguration = {
-            chart: {
-                data: {
-                    x: xAxisName,
-                    columns: columnData
-                },
-                axis: {
-                    x: {
-                        label: xAxisName
-                    },
-                    y: {
-                        min: 0,
-                        label: yAxisName
-                    }
-                },
-                grid: {
-                    y: {
-                        show: true
-                    }
-                }
-            }
+            height: document.documentElement.clientHeight * 0.5,
+            data: graphData,
+            xKey: xAxisName,
+            yKeys: Array.from(dataSetKeys).map(k => stringifyValue(k)),
+            yAxisLabel: yAxisName,
         };
         addAndSelectTab(new GraphTabProps(graphConfig));
     }

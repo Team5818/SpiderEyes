@@ -5,6 +5,9 @@ import {AvgTabProps, CsvTabProps, GraphTabProps, TabProps, TabType} from "./tabT
 import {AdvancedTable} from "./AdvancedTable";
 import {noUnhandledCase} from "./utils";
 import {Graph} from "./Graph";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faCalculator, faChartLine, faFileAlt, faSquareXmark} from "@fortawesome/free-solid-svg-icons";
+import {IconProp} from "@fortawesome/fontawesome-svg-core";
 
 
 export const CsvTab: React.FunctionComponent<CsvTabProps> = function CsvTab(props) {
@@ -39,27 +42,27 @@ type TabCloseButtonProps = {
 
 const TabCloseButton: React.FunctionComponent<TabCloseButtonProps> = ({closeTab}) => {
     const [hover, setHover] = useState(false);
-    return <div
-        className={`${hover ? 'text-info' : ''}`}
+    return <span
+        className={`${hover ? 'text-info' : ''} d-flex align-items-top`}
         onMouseEnter={(): void => setHover(true)}
         onMouseLeave={(): void => setHover(false)}
         onClick={(e): void => {
             e.preventDefault();
             closeTab();
         }}>
-        <i className="fas fa-window-close"/>
-    </div>;
+        <FontAwesomeIcon icon={faSquareXmark}/>
+    </span>;
 };
 
 function tabsHeader(props: TabsProps): ReactNode {
-    function getTabType(v: TabProps): string {
+    function getTabIcon(v: TabProps): IconProp {
         switch (v.type) {
             case TabType.CSV:
-                return 'file-alt';
+                return faFileAlt;
             case TabType.AVG:
-                return 'calculator';
+                return faCalculator;
             case TabType.GRAPH:
-                return 'chart-line';
+                return faChartLine;
             default:
                 return noUnhandledCase(v);
         }
@@ -73,11 +76,11 @@ function tabsHeader(props: TabsProps): ReactNode {
                          props.selectTab(v.id);
                      }}>
                 <NavLink active={v.id === props.selectedTab} className="p-0">
-                    <Row noGutters>
+                    <Row className="g-0">
                         <Col sm="auto" className="p-2">
-                            <i className={`fas fa-3x fa-${getTabType(v)}`}/>
+                            <FontAwesomeIcon icon={getTabIcon(v)} size="3x"/>
                         </Col>
-                        <Col sm="auto" className="pr-1">
+                        <Col sm="auto" className="pr-1  ">
                             <TabCloseButton closeTab={(): void => props.closeTab(v.id)}/>
                         </Col>
                     </Row>

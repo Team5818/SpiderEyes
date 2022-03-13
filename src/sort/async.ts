@@ -65,6 +65,6 @@ export class AsyncSorter<T> {
      * The "async" part of this sort -- inserts a delay by using animation frames.
      */
     private delay(): Promise<void> {
-        return new Promise(resolve => requestAnimationFrame(() => resolve()));
+        return new Promise(resolve => requestAnimationFrame(() => resolve(void 0)));
     }
 }

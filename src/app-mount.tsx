@@ -51,7 +51,6 @@ ISTATE.subscribe(() => {
 async function maybeSleep<T>(ftr: Promise<T>, start: number): Promise<T> {
     const result = await ftr;
     const diff = Date.now() - start;
-    console.log(diff);
     const remaining = 500 - diff;
     if (remaining > 0) {
         await new Promise(resolve => {
