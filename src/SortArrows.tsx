@@ -1,5 +1,5 @@
 import {SortDirection} from "./SortDirection";
-import React, {MouseEventHandler, ReactNode} from "react";
+import React, {MouseEventHandler, PropsWithChildren, ReactNode} from "react";
 import sortArrowData from "./img/sort-arrow.svg";
 
 type SortArrowProps = {
@@ -63,14 +63,14 @@ class SortArrow extends React.Component<SortArrowProps, SortArrowState> {
 }
 
 
-export type SortArrowsProps = {
+export type SortArrowsProps = PropsWithChildren<{
     /**
      * Direction to highlight the arrow. If undefined, none are highlighted.
      */
     direction?: SortDirection,
     enabled: boolean,
     onSort(sortDir: SortDirection): void
-};
+}>;
 
 function createSortArrow(dir: SortDirection, parentProps: SortArrowsProps): ReactNode {
     return <SortArrow

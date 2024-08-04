@@ -51,7 +51,7 @@ class AFSFactoryImpl<STATE> implements ActionForSliceFactory<STATE> {
 
     getReducer(): Reducer<STATE, OTAction<unknown>> {
         return (prevState, action: OTAction<unknown>) => {
-            const newState = Object.assign({}, prevState);
+            const newState: STATE = Object.assign({}, prevState);
             for (const key of oKeys(this.sliceTransforms)) {
                 const sliceTransform = this.sliceTransforms[key];
                 if (typeof sliceTransform === "undefined") {

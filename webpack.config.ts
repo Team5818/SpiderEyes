@@ -39,13 +39,12 @@ const options: (env: KnownEnv) => Configuration = (env) => {
                 favicons: {
                     pixel_art: true,
                     icons: {
+                        favicons: true,
                         android: false,
                         appleIcon: false,
                         appleStartup: false,
-                        coast: false,
                         yandex: false,
                         windows: false,
-                        firefox: false,
                     },
                 },
             }),

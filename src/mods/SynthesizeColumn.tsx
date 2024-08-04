@@ -50,7 +50,7 @@ export class SynthesizeColumn extends React.Component<SynthesizeColumnProps, Syn
             const newRow = row.data.slice();
             const value = row.data
                 .map((v, i) => ({value: v, score: this.props.data.header[i]!.score}))
-                .filter((v, i) => this.state.selectedHeaders[i])
+                .filter((_, i) => this.state.selectedHeaders[i])
                 .reduce((prev, next) => reduceValues(prev, next.value, next.score), 0);
             newRow.splice(newIndex, 0, interpretValue(value));
             return newRow;

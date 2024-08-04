@@ -1,6 +1,5 @@
 import "floatthead";
 import React from "react";
-import ReactDOM from "react-dom";
 import {connect, Provider} from "react-redux";
 import {Actions, ISTATE, setState} from "./reduxish/store";
 import {Tabs} from "./tabs";
@@ -10,6 +9,7 @@ import {InternalState} from "./reduxish/InternalState";
 import {PromiseGate} from "./persist/PromiseGate";
 import {retrievePersistedState, storeState} from "./persist/persistor";
 import {afterNextRender} from "./utils";
+import {createRoot} from "react-dom/client";
 
 const LocalTabs = connect(
     (ISTATE: InternalState) => {
@@ -75,11 +75,11 @@ export function mountApp(): void {
     const waiting = <div className="w-100 h-100 d-flex flex-column align-items-center align-content-center">
         <p>Loading existing state, please wait...</p>
     </div>;
-    ReactDOM.render(<Provider store={ISTATE}>
+    createRoot(document.getElementById('mount')!).render(<Provider store={ISTATE}>
         <PromiseGate blocker={stateFuture} waiting={waiting}>
             <LocalTabs/>
         </PromiseGate>
-    </Provider>, document.getElementById('mount'));
-    ReactDOM.render(<UploadCsv/>, document.getElementById("mountUpload"));
+    </Provider>);
+    createRoot(document.getElementById('mountUpload')!).render(<UploadCsv/>);
     document.getElementById("versionHolder")!.innerText = VERSION;
 }

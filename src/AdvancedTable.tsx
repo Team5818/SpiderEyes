@@ -1,4 +1,4 @@
-import React, {HTMLProps, ReactNode, useState} from "react";
+import React, {HTMLProps, ReactElement, ReactNode, useState} from "react";
 import {Button, Table} from 'reactstrap';
 import {stringifyValue} from "./csv/values";
 import {SortDirection} from "./SortDirection";
@@ -137,16 +137,17 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
         </tr>;
     }
 
-    private tableHeader(i: number | undefined, v: React.ReactChild): ReactNode {
+    private tableHeader(i: number | undefined, v: ReactElement | string): ReactNode {
         const headerSort = this.getHeaderSort(i);
-        const thProps: Pick<HTMLProps<HTMLTableHeaderCellElement>, 'className' | 'key' | 'style'> = {};
+        let thKey;
+        const thProps: Pick<HTMLProps<HTMLTableCellElement>, 'className' | 'style'> = {};
         if (typeof i !== "undefined") {
-            thProps.key = `${i}-header`;
+            thKey = `${i}-header`;
             thProps.style = {
                 width: this.props.data.header[i]!.maxCharWidth + "ch"
             };
         } else {
-            thProps.key = `x-marks-the-spot`;
+            thKey = `x-marks-the-spot`;
             thProps.style = {
                 width: 1
             };
@@ -157,7 +158,7 @@ export class AdvancedTable extends React.Component<AdvancedTableProps, AdvancedT
                 {v}
             </span>
         );
-        return <th {...thProps}>
+        return <th key={thKey} {...thProps}>
             {typeof i === "undefined"
                 ? innerElement
                 :

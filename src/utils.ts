@@ -1,4 +1,4 @@
-export function oKeys<T>(o: T): (keyof T)[] {
+export function oKeys<T extends object>(o: T): (keyof T)[] {
     return Object.keys(o) as (keyof T)[];
 }
 

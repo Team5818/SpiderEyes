@@ -22,19 +22,19 @@ average each value together.
 
 For example, with key column `Team` and value columns `A` and `B`,
 
-|Team|A   |B   |C   |
-|----|----|----|----|
-|1   |50  |10  |99  |
-|2   |30  |10  |24  |
-|1   |20  |10  |39  |
-|2   |40  |10  |11  |
+| Team | A  | B  | C  |
+|------|----|----|----|
+| 1    | 50 | 10 | 99 |
+| 2    | 30 | 10 | 24 |
+| 1    | 20 | 10 | 39 |
+| 2    | 40 | 10 | 11 |
 
 turns into this:
 
-|Team|A        |B         |
-|----|---------|----------|
-|1   |35.00±...|10.00±0.00|
-|2   |35.00±...|10.00±0.00|
+| Team | A         | B          |
+|------|-----------|------------|
+| 1    | 35.00±... | 10.00±0.00 |
+| 2    | 35.00±... | 10.00±0.00 |
 
 The two columns are averaged independently, and extra columns are removed.
 

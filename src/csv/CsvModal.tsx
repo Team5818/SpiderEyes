@@ -1,20 +1,22 @@
 import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
-import React from "react";
-import ReactDOM from "react-dom";
+import React, {PropsWithChildren} from "react";
+import {createRoot} from "react-dom/client";
+
+const modalRoot = createRoot(document.getElementById('mountModal')!);
 
 export function injectModal(modal: React.ReactElement): void {
-    ReactDOM.render(modal, document.getElementById('mountModal'));
+    modalRoot.render(modal);
 }
 
 export function closeModal(): void {
-    ReactDOM.render([], document.getElementById('mountModal'));
+    modalRoot.render([]);
 }
 
-export type CsvModalProps = {
+export type CsvModalProps = PropsWithChildren<{
     title: string,
     submitLabel: string,
     onSubmit: React.ReactEventHandler<HTMLElement>
-};
+}>;
 
 export const CsvModal: React.FunctionComponent<CsvModalProps> = function CsvModal(props) {
     function submitModal(e: React.SyntheticEvent<HTMLElement>): void {
